@@ -56,10 +56,15 @@ vertBlockComb l@(Block matrL) r@(Block matrR) = if (vecY $ mGetSize $ matrL) /= 
 			then mGet index matrL
 			else mGet (index |-| (vecX (mGetSize matrL),0)) matrR
 
-renderToBlock :: (src -> [repr]) -> [repr] -> RenderFunctionWithSize src (Block repr) (Size Int)
-renderToBlock show fillTile size list = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ show list ++ cycle fillTile
-	where
-		area = vecX size * vecY size
+renderToBlock :: (src -> [repr]) -> [repr] -> RenderFunctionWithSize src (Block repr) (Size Int) Int
+renderToBlock show fillTile = RenderFunctionWithSize {
+	runRenderFWithSize = renderF,
+	checkSize = checkSize
+} where
+	renderF size list = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ show list ++ cycle fillTile
+		where
+			area = vecX size * vecY size
+	checkSize list = length $ show list
 
 {-
 renderToHoriBlock fillTile size = HoriBlock . renderToBlock fillTile size
@@ -70,15 +75,15 @@ renderToVertBlock fillTile size = VertBlock . renderToBlock fillTile size
 stretchMethBlock show fillTile size block@(Block matr) = renderToBlock show fillTile size $ concat [ mGetRow iRow matr | iRow <- mGetAllIndexRow matr ]
 -}
 
-testMethod :: (Show src) => RenderFunctionWithSize (src,src) (Block Char) (Size Int)
+testMethod :: (Show src) => RenderFunctionWithSize (src,src) (Block Char) (Size Int) Int
 testMethod = combineWithSize2' horiBlockComb (divHoriFromDivDist divE) (renderToBlock show ".") (renderToBlock show "*")
-testMethod2 :: (Show src) => RenderFunctionWithSize (src,src) (Block Char) (Size Int)
+testMethod2 :: (Show src) => RenderFunctionWithSize (src,src) (Block Char) (Size Int) Int
 testMethod2 = combineWithSize2' vertBlockComb (divHoriFromDivDist divE) (renderToBlock show ".") (renderToBlock show "*")
 
 --testMeth :: (Card n) => n -> RenderFunctionWithSize (src,src) (Block Char) (Size Int)
 testMeth indexDim = combineWithSize2 indexDim (divHoriFromDivDist divE) (renderToBlock id ".") (renderToBlock id "*")
 
-test = testMeth n2 (10,10) ("left","right")
+test = (runRenderFWithSize $ testMeth n0) (10,10) ("left","right")
 
 --testMethod2 = combWithDist (divVertFromDivDist divE) (renderToVertBlock ".") (renderToVertBlock "*")
 

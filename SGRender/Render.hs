@@ -24,7 +24,10 @@ combine2 :: ReprComb repr -> RenderFunction srcL repr -> RenderFunction srcR rep
 combine2 conc rndrFuncL rndrFuncR (srcL,srcR) = rndrFuncL srcL `conc` rndrFuncR srcR
 
 
-type RenderFunctionWithSize src dst size = size -> src -> dst
+data RenderFunctionWithSize src dst size area = RenderFunctionWithSize {
+	runRenderFWithSize :: size -> src -> dst,
+	checkSize :: src -> area
+}
 type DivDist a = Count -> a -> [a]
 
 {-|1. uses divDist to divide the given size
@@ -33,15 +36,28 @@ type DivDist a = Count -> a -> [a]
 
 3. concatenate both results using 'mmappend' with 'indexDim'
 -}
-combineWithSize2 :: (Card countDim, MultiMonoid repr countDim, Card indexDim) => indexDim -> DivDist dist -> RenderFunctionWithSize srcL repr dist -> RenderFunctionWithSize srcR repr dist -> RenderFunctionWithSize (srcL,srcR) repr dist
-combineWithSize2 indexDim divDist rndrFuncL rndrFuncR size (srcL,srcR) = let sizeL : sizeR : _ = divDist 2 size in
-	mmappend indexDim (rndrFuncL sizeL srcL) (rndrFuncR sizeR srcR)
+combineWithSize2 :: (Card countDim, MultiMonoid repr countDim, Card indexDim, Num area) => indexDim -> DivDist dist -> RenderFunctionWithSize srcL repr dist area -> RenderFunctionWithSize srcR repr dist area -> RenderFunctionWithSize (srcL,srcR) repr dist area
+combineWithSize2 indexDim = combineWithSize2' (mmappend indexDim)
 
 {-|same as combineWithSize2, but explicitly give a 'concat' method
 -}
-combineWithSize2' :: ReprComb repr -> DivDist dist -> RenderFunctionWithSize srcL repr dist -> RenderFunctionWithSize srcR repr dist -> RenderFunctionWithSize (srcL,srcR) repr dist
-combineWithSize2' concat divDist rndrFuncL rndrFuncR size (srcL,srcR) = let sizeL : sizeR : _ = divDist 2 size in
-	(rndrFuncL sizeL srcL) `concat` (rndrFuncR sizeR srcR)
+combineWithSize2' :: (Num area) => ReprComb repr -> DivDist dist -> RenderFunctionWithSize srcL repr dist area -> RenderFunctionWithSize srcR repr dist area -> RenderFunctionWithSize (srcL,srcR) repr dist area
+combineWithSize2' concat divDist rndrMethL rndrMethR = RenderFunctionWithSize {
+	runRenderFWithSize = renderF,
+	checkSize = checkSizeNew
+} where
+	renderF size (srcL,srcR) =
+		let
+			sizeL : sizeR : _ = divDist 2 size
+			(rndrFuncL,rndrFuncR) = (runRenderFWithSize rndrMethL, runRenderFWithSize rndrMethR)
+		in
+			(rndrFuncL sizeL srcL) `concat` (rndrFuncR sizeR srcR)
+	checkSizeNew (srcL,srcR) =
+		let
+			(checkL,checkR) = (checkSize rndrMethL, checkSize rndrMethR)
+		in
+			checkL srcL + checkR srcR
+			
 
 type Size a = (a, a)
 type Count = Int 
