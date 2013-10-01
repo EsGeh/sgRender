@@ -56,7 +56,7 @@ vertBlockComb l@(Block matrL) r@(Block matrR) = if (vecY $ mGetSize $ matrL) /= 
 			then mGet index matrL
 			else mGet (index |-| (vecX (mGetSize matrL),0)) matrR
 
-renderToBlock :: (src -> String) -> String -> RenderFunctionWithSize src (Block Char) (Size Int)
+renderToBlock :: (src -> [repr]) -> [repr] -> RenderFunctionWithSize src (Block repr) (Size Int)
 renderToBlock show fillTile size list = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ show list ++ cycle fillTile
 	where
 		area = vecX size * vecY size

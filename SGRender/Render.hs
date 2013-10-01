@@ -27,13 +27,21 @@ combine2 conc rndrFuncL rndrFuncR (srcL,srcR) = rndrFuncL srcL `conc` rndrFuncR 
 type RenderFunctionWithSize src dst size = size -> src -> dst
 type DivDist a = Count -> a -> [a]
 
-combineWithSize2 :: (Card countDim,MultiMonoid repr countDim, Card indexDim) => indexDim -> DivDist dist -> RenderFunctionWithSize srcL repr dist -> RenderFunctionWithSize srcR repr dist -> RenderFunctionWithSize (srcL,srcR) repr dist
+{-|1. uses divDist to divide the given size
+
+2. use the 'rndrFunc'tions to render both 'src'es so that they fill the sizes from step 1.
+
+3. concatenate both results using 'mmappend' with 'indexDim'
+-}
+combineWithSize2 :: (Card countDim, MultiMonoid repr countDim, Card indexDim) => indexDim -> DivDist dist -> RenderFunctionWithSize srcL repr dist -> RenderFunctionWithSize srcR repr dist -> RenderFunctionWithSize (srcL,srcR) repr dist
 combineWithSize2 indexDim divDist rndrFuncL rndrFuncR size (srcL,srcR) = let sizeL : sizeR : _ = divDist 2 size in
 	mmappend indexDim (rndrFuncL sizeL srcL) (rndrFuncR sizeR srcR)
 
+{-|same as combineWithSize2, but explicitly give a 'concat' method
+-}
 combineWithSize2' :: ReprComb repr -> DivDist dist -> RenderFunctionWithSize srcL repr dist -> RenderFunctionWithSize srcR repr dist -> RenderFunctionWithSize (srcL,srcR) repr dist
-combineWithSize2' mappend divDist rndrFuncL rndrFuncR size (srcL,srcR) = let sizeL : sizeR : _ = divDist 2 size in
-	(rndrFuncL sizeL srcL) `mappend` (rndrFuncR sizeR srcR)
+combineWithSize2' concat divDist rndrFuncL rndrFuncR size (srcL,srcR) = let sizeL : sizeR : _ = divDist 2 size in
+	(rndrFuncL sizeL srcL) `concat` (rndrFuncR sizeR srcR)
 
 type Size a = (a, a)
 type Count = Int 
