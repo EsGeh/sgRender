@@ -81,9 +81,9 @@ testMethod2 :: (Show src) => RenderFunctionWithSize (src,src) (Block Char) (Size
 testMethod2 = combineWithSize2' vertBlockComb (divHoriFromDivDist divE) (renderToBlock show ".") (renderToBlock show "*")
 
 --testMeth :: (Card n) => n -> RenderFunctionWithSize (src,src) (Block Char) (Size Int)
-testMeth indexDim = combineWithSize2 indexDim (divHoriFromDivDist divE) (renderToBlock id ".") (renderToBlock id "*")
+testMeth indexDim = combineWithSize2 indexDim (divHoriFromDivDist divE) (renderToBlock show ".") (renderToBlock show "*")
 
-test = (runRenderFWithSize $ testMeth n0) (10,10) ("left","right")
+test = (runRenderFWithSize $ testMeth n0) (10,10) (20,30)
 
 --testMethod2 = combWithDist (divVertFromDivDist divE) (renderToVertBlock ".") (renderToVertBlock "*")
 
