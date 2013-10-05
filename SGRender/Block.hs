@@ -3,10 +3,10 @@ module SGRender.Block where
 
 import SGRender.Render
 
-import Util.Vector2D
-import Util.Card.Card
-import Util.Card.Unary
-import Math.Matrix
+import SGData.Vector2D
+import Card.Card
+import Card.Unary
+import SGData.Matrix
 import Data.Maybe
 import Data.Monoid
 
@@ -56,15 +56,36 @@ vertBlockComb l@(Block matrL) r@(Block matrR) = if (vecY $ mGetSize $ matrL) /= 
 			then mGet index matrL
 			else mGet (index |-| (vecX (mGetSize matrL),0)) matrR
 
-renderToBlock :: (src -> [repr]) -> [repr] -> RenderFunctionWithSize src (Block repr) (Size Int) Int
-renderToBlock show fillTile = RenderFunctionWithSize {
-	runRenderFWithSize = renderF,
-	checkSize = checkSize
-} where
-	renderF size list = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ show list ++ cycle fillTile
-		where
-			area = vecX size * vecY size
-	checkSize list = length $ show list
+data RenderWithSizeParams src char = RenderWithSizeParams {
+	showF :: (src -> [char]),
+	fillTile :: [char],
+	parenthesis :: [char]
+}
+
+renderToBlock :: RenderFunction src (Block char)
+renderToBlockFixWidth showF src = let string = showF src in
+	
+
+rndrWithSizePStd :: (Show a) => RenderWithSizeParams a Char
+rndrWithSizePStd = RenderWithSizeParams {
+	showF = show,
+	fillTile = " ",
+	parenthesis = ".."
+}
+
+renderToBlockWithSize :: RenderWithSizeParams src char -> RenderMethodWithSize src (Block char) (Size Int) Int
+renderToBlockWithSize params =
+	RenderMethodWithSize {
+		runRenderFWithSize = renderF,
+		checkSize = checkSize
+	} where
+		renderF size list = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ show list ++ cycle fillTile'
+			where
+				area = vecX size * vecY size
+		checkSize list = length $ show list
+		show = showF params
+		fillTile' = fillTile params
+		parenthesis' = parenthesis params
 
 {-
 renderToHoriBlock fillTile size = HoriBlock . renderToBlock fillTile size
@@ -75,19 +96,33 @@ renderToVertBlock fillTile size = VertBlock . renderToBlock fillTile size
 stretchMethBlock show fillTile size block@(Block matr) = renderToBlock show fillTile size $ concat [ mGetRow iRow matr | iRow <- mGetAllIndexRow matr ]
 -}
 
-testMethod :: (Show src) => RenderFunctionWithSize (src,src) (Block Char) (Size Int) Int
-testMethod = combineWithSize2' horiBlockComb (divHoriFromDivDist divE) (renderToBlock show ".") (renderToBlock show "*")
-testMethod2 :: (Show src) => RenderFunctionWithSize (src,src) (Block Char) (Size Int) Int
-testMethod2 = combineWithSize2' vertBlockComb (divHoriFromDivDist divE) (renderToBlock show ".") (renderToBlock show "*")
+hori2WithSize :: (Show src) => RenderMethodWithSize (src,src) (Block Char) (Size Int) Int
+hori2WithSize = combineWithSize2'
+	horiBlockComb
+	(divHoriFromDivDist divE)
+	(renderToBlockWithSize rndrWithSizePStd{ fillTile="+"})
+	(renderToBlockWithSize rndrWithSizePStd{ fillTile="*"})
+vert2WithSize :: (Show src) => RenderMethodWithSize (src,src) (Block Char) (Size Int) Int
+vert2WithSize = combineWithSize2'
+	vertBlockComb
+	(divHoriFromDivDist divE)
+	(renderToBlockWithSize rndrWithSizePStd{ fillTile="+"})
+	(renderToBlockWithSize rndrWithSizePStd{ fillTile="*"})
+
+horiWithSize :: (Show src) => RenderMethodWithSize [src] (Block Char) (Size Int) Int
+horiWithSize = combineWithSize hori
+	(divHoriFromDivDist divE)
+	(repeat $ renderToBlockWithSize rndrWithSizePStd{ fillTile="+"})
+	
 
 --testMeth :: (Card n) => n -> RenderFunctionWithSize (src,src) (Block Char) (Size Int)
-testMeth indexDim = combineWithSize2 indexDim (divHoriFromDivDist divE) (renderToBlock show ".") (renderToBlock show "*")
+testMeth indexDim = combineWithSize2 indexDim (divHoriFromDivDist divE) (renderToBlockWithSize rndrWithSizePStd) (renderToBlockWithSize rndrWithSizePStd)
 
 test = (runRenderFWithSize $ testMeth n0) (10,10) (20,30)
 
 --testMethod2 = combWithDist (divVertFromDivDist divE) (renderToVertBlock ".") (renderToVertBlock "*")
 
-divE count width = [4,4]
+divE count width = take count $ repeat 4
 
 
 type DivSize dist = DivDist (Size dist)

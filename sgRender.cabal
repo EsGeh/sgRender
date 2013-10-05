@@ -17,4 +17,4 @@ cabal-version:       >=1.8
 library
   exposed-modules:     SGRender.Block, SGRender.Render
   -- other-modules:       
-  build-depends:       base ==4.5.*, HsUtils ==1.0.*
+  build-depends:       sgCard >= 0.1.0.0, sgData >= 0.1.0.0, base ==4.5.*

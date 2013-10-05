@@ -1,9 +1,9 @@
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
 module SGRender.Render where
 
-import Util.Vector2D
-import Util.Card.Card
-import Util.Card.Unary
+import SGData.Vector2D
+import Card.Card
+import Card.Unary
 import Data.Monoid
 
 -- |represents a way to combine representations:
@@ -19,13 +19,23 @@ class MultiMonoid a countDim | a -> countDim where
 hori = n0
 vert = n1
 
+{-
+combHori2 = combine2 hori
+combVert2 = combine2 vert
+-}
 
-combine2 :: ReprComb repr -> RenderFunction srcL repr -> RenderFunction srcR repr -> RenderFunction (srcL,srcR) repr
-combine2 conc rndrFuncL rndrFuncR (srcL,srcR) = rndrFuncL srcL `conc` rndrFuncR srcR
+combine2 indexDim = combine2' (mmappend indexDim)
 
+combine2' :: ReprComb repr -> RenderFunction srcL repr -> RenderFunction srcR repr -> RenderFunction (srcL,srcR) repr
+combine2' conc rndrFuncL rndrFuncR (srcL,srcR) = rndrFuncL srcL `conc` rndrFuncR srcR
 
-data RenderFunctionWithSize src dst size area = RenderFunctionWithSize {
-	runRenderFWithSize :: size -> src -> dst,
+combine' :: ReprComb repr -> [RenderFunction src repr] -> RenderFunction [src] repr
+combine' conc rndrFuncList srcList = foldl1 conc $ zipWith (\func src -> func src) rndrFuncList srcList
+
+type RenderFunctionWithSize src dst size = size -> src -> dst
+
+data RenderMethodWithSize src dst size area = RenderMethodWithSize {
+	runRenderFWithSize :: RenderFunctionWithSize src dst size,
 	checkSize :: src -> area
 }
 type DivDist a = Count -> a -> [a]
@@ -36,13 +46,13 @@ type DivDist a = Count -> a -> [a]
 
 3. concatenate both results using 'mmappend' with 'indexDim'
 -}
-combineWithSize2 :: (Card countDim, MultiMonoid repr countDim, Card indexDim, Num area) => indexDim -> DivDist dist -> RenderFunctionWithSize srcL repr dist area -> RenderFunctionWithSize srcR repr dist area -> RenderFunctionWithSize (srcL,srcR) repr dist area
+combineWithSize2 :: (Card countDim, MultiMonoid repr countDim, Card indexDim, Num area) => indexDim -> DivDist dist -> RenderMethodWithSize srcL repr dist area -> RenderMethodWithSize srcR repr dist area -> RenderMethodWithSize (srcL,srcR) repr dist area
 combineWithSize2 indexDim = combineWithSize2' (mmappend indexDim)
 
 {-|same as combineWithSize2, but explicitly give a 'concat' method
 -}
-combineWithSize2' :: (Num area) => ReprComb repr -> DivDist dist -> RenderFunctionWithSize srcL repr dist area -> RenderFunctionWithSize srcR repr dist area -> RenderFunctionWithSize (srcL,srcR) repr dist area
-combineWithSize2' concat divDist rndrMethL rndrMethR = RenderFunctionWithSize {
+combineWithSize2' :: (Num area) => ReprComb repr -> DivDist dist -> RenderMethodWithSize srcL repr dist area -> RenderMethodWithSize srcR repr dist area -> RenderMethodWithSize (srcL,srcR) repr dist area
+combineWithSize2' concat divDist rndrMethL rndrMethR = RenderMethodWithSize {
 	runRenderFWithSize = renderF,
 	checkSize = checkSizeNew
 } where
@@ -57,13 +67,35 @@ combineWithSize2' concat divDist rndrMethL rndrMethR = RenderFunctionWithSize {
 			(checkL,checkR) = (checkSize rndrMethL, checkSize rndrMethR)
 		in
 			checkL srcL + checkR srcR
-			
+
+combineWithSize :: (Card countDim, MultiMonoid repr countDim, Card indexDim, Num area) => indexDim -> DivDist dist -> [RenderMethodWithSize src repr dist area] -> RenderMethodWithSize [src] repr dist area
+combineWithSize indexDim = combineWithSize' (mmappend indexDim)
+
+combineWithSize' :: (Num area) => ReprComb repr -> DivDist dist -> [RenderMethodWithSize src repr dist area] -> RenderMethodWithSize [src] repr dist area
+combineWithSize' concat divDist listRndrMeth = RenderMethodWithSize {
+	runRenderFWithSize = \size listSrc -> let sizes = divDist (length listSrc) size in
+		foldl1 concat $ zipWith3 (\rndrF size src -> rndrF size src) (map runRenderFWithSize listRndrMeth) sizes listSrc, --combineRenderF concat sizes listRndrMeth,
+	checkSize = \listSrc -> sum $ zipWith (\checkF src -> checkF src) (map checkSize listRndrMeth) listSrc
+}
+
+
+
+{-
+combine :: (Num area) => ReprComb repr -> [dist] -> [RenderMethodWithSize srcL repr dist area] -> RenderMethodWithSize [src] repr dist area
+combine concat sizeList rndrMethList = case sizeList of
+	[] -> \
+	let
+		= divDist 2 size
+		(rndrFuncL,rndrFuncR) = (runRenderFWithSize rndrMethL, runRenderFWithSize rndrMethR)
+	in
+		(rndrFuncL sizeL srcL) `concat` (rndrFuncR sizeR srcR)
+-}
 
 type Size a = (a, a)
 type Count = Int 
 
 {-
-hori :: Monoid repr => DivDist dist -> RenderFunctionWithSize srcL repr size -> RenderFunctionWithSize srcR repr size -> RenderFunctionWithSize (srcL,srcR) repr size
+hori :: Monoid repr => DivDist dist -> RenderMethodWithSize srcL repr size -> RenderMethodWithSize srcR repr size -> RenderMethodWithSize (srcL,srcR) repr size
 hori divDist rndrFuncL rndrFuncR size (srcL,srcR) = let sizeL : sizeR : _ = (divHoriFromDivDist divDist) 2 size in
 	(rndrFuncL sizeL srcL) `mappend` (rndrFuncR sizeR srcR)
 -}
