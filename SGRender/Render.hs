@@ -12,7 +12,7 @@ type ReprComb repr = repr -> repr -> repr
 -- |calculate a representation for source
 type RenderFunction src dst params = params -> src -> dst
 
-data RenderMethod src repr srcInfo params = RenderMeth {
+data RenderMethod src repr params srcInfo = RenderMeth {
 	srcInfo :: src -> srcInfo,
 	renderF :: RenderFunction src repr params
 }
@@ -27,18 +27,20 @@ vert = n1
 
 type Binary a = a -> a -> a
 
+--type CombineSrcInfo = [srcInfo] -> 
 
 {-
 	1. listConstr
 -}
-combine :: Binary srcInfo -> Binary repr -> (param -> [srcInfo] -> [param]) -> [RenderMethod src repr srcInfo param] -> RenderMethod [src] repr srcInfo param
+
+combine :: (srcInfo -> srcInfo -> srcInfo) -> Binary repr -> (param -> [srcInfo] -> [paramSubMeth]) -> [RenderMethod src repr paramSubMeth srcInfo] -> RenderMethod [src] repr param srcInfo
 combine concInfo concRepr listParamsFromListSrcInfo rndrMethList = RenderMeth {
 	srcInfo = newSrcInfo,
 	renderF = newRenderF
 } where
-	newSrcInfo listSrc = foldl1 concInfo $ listSrcInfo listSrc
-	newRenderF params listSrc = foldl1 concRepr $ zipWith3 (\params f s -> (renderF f) params s) (listParams params listSrc) rndrMethList listSrc
-	listParams params listSrc = listParamsFromListSrcInfo params $ listSrcInfo listSrc
+	newSrcInfo listSrc = (foldl1 concInfo $ listSrcInfo listSrc)
+	newRenderF param listSrc = foldl1 concRepr $ zipWith3 (\params f s -> (renderF f) params s) (listParams param listSrc) rndrMethList listSrc
+	listParams param listSrc = listParamsFromListSrcInfo param $ listSrcInfo listSrc
 	listSrcInfo listSrc = zipWith (\f s -> (srcInfo f) s) rndrMethList listSrc
 
 
@@ -47,6 +49,7 @@ type Count = Int
 
 
 
+{-
 basic :: (Show a) => String -> RenderMethod a String Int Int
 basic tile = RenderMeth { srcInfo = length . show, renderF = (\params val -> forceSize params tile $ show val) }
 
@@ -68,6 +71,7 @@ combDivSizeWith sep = combine concInfo concRepr pFromSrcInfo (repeat $ basic "_"
 
 
 forceSize size tile str = take size $ str ++ cycle tile
+-}
 
 {-
 combHori2 = combine2 hori

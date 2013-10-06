@@ -6,7 +6,7 @@ import SGRender.Render
 import SGData.Vector2D
 import Card.Card
 import Card.Unary
-import SGData.Matrix
+import SGData.Matrix hiding(Width,Height)
 import Data.Maybe
 import Data.Monoid
 
@@ -56,41 +56,62 @@ vertBlockComb l@(Block matrL) r@(Block matrR) = if (vecY $ mGetSize $ matrL) /= 
 			then mGet index matrL
 			else mGet (index |-| (vecX (mGetSize matrL),0)) matrR
 
-data RenderWithSizeParams src char = RenderWithSizeParams {
+data RenderParams src char = RenderParams {
 	showF :: (src -> [char]),
 	fillTile :: [char],
 	parenthesis :: [char]
 }
+renderParamsStd :: (Show a) => RenderParams a Char
+renderParamsStd = RenderParams {
+	showF = show,
+	fillTile = " ",
+	parenthesis = ".."
+}
 
-renderToBlock :: (src -> srcInfo) -> (src -> [char]) -> [char] -> RenderMethod src (Block char) srcInfo (Size Int)
-renderToBlock infoFromSrc showF fillTile = RenderMeth {
+renderToBlock infoFromSrc params = renderToBlock' infoFromSrc (showF params) (fillTile params)
+
+renderToBlock' :: (src -> srcInfo) -> (src -> [char]) -> [char] -> RenderMethod src (Block char) (Size Int) srcInfo 
+renderToBlock' infoFromSrc showF fillTile = RenderMeth {
 	renderF = newRenderF,
 	srcInfo = infoFromSrc
 } where
 	newRenderF size src = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ showF src ++ cycle fillTile where
 		area = vecX size * vecY size
-	
-type MinArea = Int
-horiWithSize :: (Show src) => Int -> RenderMethod [src] (Block Char) MinArea (Size Int)
-horiWithSize height = combine
+
+type Width = Int
+type Height = Int
+type MinWidth = Width
+type MinHeight = Height
+type Area = Int
+
+renderToBlockTest :: Show src => RenderMethod src (Block Char) (Size Int) Area
+renderToBlockTest = renderToBlock (\src -> length $ show src) renderParamsStd{ fillTile="+"}
+
+--horizontal:: RenderParams src char -> [RenderMethod src (Block char) (Size Int) Area] -> RenderMethod [src] (Block char) () ()
+horizontal renderMethList = combine
 	(+)
 	horiBlockComb
 	listSizeFromSrcInfo
-	(repeat $ renderToBlock infoFromSrc show "+")
+	renderMethList
+	--(repeat $ renderToBlock infoFromSrc rndrParams)
 	where
 		--infoFromSrc :: src -> MinArea
-		infoFromSrc src = length $ show src
-		listSizeFromSrcInfo :: Size Int -> [MinArea] -> [Size Int]
-		listSizeFromSrcInfo size listSrcInfo = zip
-			(repeat $ maximum $ map (`div` height) listSrcInfo)
+		infoFromSrc src = () --(length $ (showF rndrParams) src) `div` height
+		--
+		listSizeFromSrcInfo :: Height -> [Area] -> [Size Int]
+		listSizeFromSrcInfo height listSrcInfo = zip
+			(repeat $ (maximum listSrcInfo) `div` height)
 			(repeat height)
+horiTest :: (Show a) => RenderMethod [a] (Block Char) Height Int
+horiTest = horizontal 
+	(repeat $ renderToBlockTest) 
+	where
+		infoFromSrc src = length $ show src
+
+--renderMatr = horizontal rndrParamsStd 1
+
+
 {-
-rndrWithSizePStd :: (Show a) => RenderWithSizeParams a Char
-rndrWithSizePStd = RenderWithSizeParams {
-	showF = show,
-	fillTile = " ",
-	parenthesis = ".."
-}
 
 
 renderToBlockWithSize :: RenderWithSizeParams src char -> RenderMethodWithSize src (Block char) (Size Int) Int
