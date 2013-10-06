@@ -87,13 +87,12 @@ type Area = Int
 renderToBlockTest :: Show src => RenderMethod src (Block Char) (Size Int) Area
 renderToBlockTest = renderToBlock (\src -> length $ show src) renderParamsStd{ fillTile="+"}
 
---horizontal:: RenderParams src char -> [RenderMethod src (Block char) (Size Int) Area] -> RenderMethod [src] (Block char) () ()
+horizontal:: [RenderMethod src (Block char) (Size Int) Area] -> RenderMethod [src] (Block char) Height ()
 horizontal renderMethList = combine
-	(+)
+	(\areaList -> ())
 	horiBlockComb
 	listSizeFromSrcInfo
 	renderMethList
-	--(repeat $ renderToBlock infoFromSrc rndrParams)
 	where
 		--infoFromSrc :: src -> MinArea
 		infoFromSrc src = () --(length $ (showF rndrParams) src) `div` height
@@ -102,7 +101,7 @@ horizontal renderMethList = combine
 		listSizeFromSrcInfo height listSrcInfo = zip
 			(repeat $ (maximum listSrcInfo) `div` height)
 			(repeat height)
-horiTest :: (Show a) => RenderMethod [a] (Block Char) Height Int
+horiTest :: (Show a) => RenderMethod [a] (Block Char) Height ()
 horiTest = horizontal 
 	(repeat $ renderToBlockTest) 
 	where

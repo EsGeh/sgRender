@@ -33,12 +33,12 @@ type Binary a = a -> a -> a
 	1. listConstr
 -}
 
-combine :: (srcInfo -> srcInfo -> srcInfo) -> Binary repr -> (param -> [srcInfo] -> [paramSubMeth]) -> [RenderMethod src repr paramSubMeth srcInfo] -> RenderMethod [src] repr param srcInfo
+combine :: ([srcInfoSub] -> srcInfo) -> Binary repr -> (param -> [srcInfoSub] -> [paramSubMeth]) -> [RenderMethod src repr paramSubMeth srcInfoSub] -> RenderMethod [src] repr param srcInfo
 combine concInfo concRepr listParamsFromListSrcInfo rndrMethList = RenderMeth {
 	srcInfo = newSrcInfo,
 	renderF = newRenderF
 } where
-	newSrcInfo listSrc = (foldl1 concInfo $ listSrcInfo listSrc)
+	newSrcInfo listSrc = concInfo $ listSrcInfo listSrc --(foldl1 concInfo $ listSrcInfo listSrc)
 	newRenderF param listSrc = foldl1 concRepr $ zipWith3 (\params f s -> (renderF f) params s) (listParams param listSrc) rndrMethList listSrc
 	listParams param listSrc = listParamsFromListSrcInfo param $ listSrcInfo listSrc
 	listSrcInfo listSrc = zipWith (\f s -> (srcInfo f) s) rndrMethList listSrc
