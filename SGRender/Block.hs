@@ -62,16 +62,36 @@ data RenderWithSizeParams src char = RenderWithSizeParams {
 	parenthesis :: [char]
 }
 
-renderToBlock :: RenderFunction src (Block char)
-renderToBlockFixWidth showF src = let string = showF src in
+renderToBlock :: (src -> srcInfo) -> (src -> [char]) -> [char] -> RenderMethod src (Block char) srcInfo (Size Int)
+renderToBlock infoFromSrc showF fillTile = RenderMeth {
+	renderF = newRenderF,
+	srcInfo = infoFromSrc
+} where
+	newRenderF size src = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ showF src ++ cycle fillTile where
+		area = vecX size * vecY size
 	
-
+type MinArea = Int
+horiWithSize :: (Show src) => Int -> RenderMethod [src] (Block Char) MinArea (Size Int)
+horiWithSize height = combine
+	(+)
+	horiBlockComb
+	listSizeFromSrcInfo
+	(repeat $ renderToBlock infoFromSrc show "+")
+	where
+		--infoFromSrc :: src -> MinArea
+		infoFromSrc src = length $ show src
+		listSizeFromSrcInfo :: Size Int -> [MinArea] -> [Size Int]
+		listSizeFromSrcInfo size listSrcInfo = zip
+			(repeat $ maximum $ map (`div` height) listSrcInfo)
+			(repeat height)
+{-
 rndrWithSizePStd :: (Show a) => RenderWithSizeParams a Char
 rndrWithSizePStd = RenderWithSizeParams {
 	showF = show,
 	fillTile = " ",
 	parenthesis = ".."
 }
+
 
 renderToBlockWithSize :: RenderWithSizeParams src char -> RenderMethodWithSize src (Block char) (Size Int) Int
 renderToBlockWithSize params =
@@ -86,22 +106,9 @@ renderToBlockWithSize params =
 		show = showF params
 		fillTile' = fillTile params
 		parenthesis' = parenthesis params
-
-{-
-renderToHoriBlock fillTile size = HoriBlock . renderToBlock fillTile size
-renderToVertBlock fillTile size = VertBlock . renderToBlock fillTile size
 -}
 
 {-
-stretchMethBlock show fillTile size block@(Block matr) = renderToBlock show fillTile size $ concat [ mGetRow iRow matr | iRow <- mGetAllIndexRow matr ]
--}
-
-hori2WithSize :: (Show src) => RenderMethodWithSize (src,src) (Block Char) (Size Int) Int
-hori2WithSize = combineWithSize2'
-	horiBlockComb
-	(divHoriFromDivDist divE)
-	(renderToBlockWithSize rndrWithSizePStd{ fillTile="+"})
-	(renderToBlockWithSize rndrWithSizePStd{ fillTile="*"})
 vert2WithSize :: (Show src) => RenderMethodWithSize (src,src) (Block Char) (Size Int) Int
 vert2WithSize = combineWithSize2'
 	vertBlockComb
@@ -119,12 +126,14 @@ horiWithSize = combineWithSize hori
 testMeth indexDim = combineWithSize2 indexDim (divHoriFromDivDist divE) (renderToBlockWithSize rndrWithSizePStd) (renderToBlockWithSize rndrWithSizePStd)
 
 test = (runRenderFWithSize $ testMeth n0) (10,10) (20,30)
+-}
 
 --testMethod2 = combWithDist (divVertFromDivDist divE) (renderToVertBlock ".") (renderToVertBlock "*")
 
 divE count width = take count $ repeat 4
 
 
+{-
 type DivSize dist = DivDist (Size dist)
 divHoriFromDivDist :: DivDist dist ->  DivSize dist
 divHoriFromDivDist divDist count size = zip
@@ -134,6 +143,7 @@ divVertFromDivDist :: DivDist dist ->  DivSize dist
 divVertFromDivDist divDist count size = zip
 	(divDist count $ vecY size)
 	(repeat $ vecX size)
+-}
 
 chop width list = case list of
 	[] -> [] 

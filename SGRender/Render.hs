@@ -5,11 +5,17 @@ import SGData.Vector2D
 import Card.Card
 import Card.Unary
 import Data.Monoid
+import Control.Applicative
 
 -- |represents a way to combine representations:
 type ReprComb repr = repr -> repr -> repr
 -- |calculate a representation for source
-type RenderFunction src dst = src -> dst
+type RenderFunction src dst params = params -> src -> dst
+
+data RenderMethod src repr srcInfo params = RenderMeth {
+	srcInfo :: src -> srcInfo,
+	renderF :: RenderFunction src repr params
+}
 
 -- |a thing that can be concatenated in many ways:
 class MultiMonoid a countDim | a -> countDim where
@@ -19,11 +25,56 @@ class MultiMonoid a countDim | a -> countDim where
 hori = n0
 vert = n1
 
+type Binary a = a -> a -> a
+
+
+{-
+	1. listConstr
+-}
+combine :: Binary srcInfo -> Binary repr -> (param -> [srcInfo] -> [param]) -> [RenderMethod src repr srcInfo param] -> RenderMethod [src] repr srcInfo param
+combine concInfo concRepr listParamsFromListSrcInfo rndrMethList = RenderMeth {
+	srcInfo = newSrcInfo,
+	renderF = newRenderF
+} where
+	newSrcInfo listSrc = foldl1 concInfo $ listSrcInfo listSrc
+	newRenderF params listSrc = foldl1 concRepr $ zipWith3 (\params f s -> (renderF f) params s) (listParams params listSrc) rndrMethList listSrc
+	listParams params listSrc = listParamsFromListSrcInfo params $ listSrcInfo listSrc
+	listSrcInfo listSrc = zipWith (\f s -> (srcInfo f) s) rndrMethList listSrc
+
+
+type Size a = (a, a)
+type Count = Int 
+
+
+
+basic :: (Show a) => String -> RenderMethod a String Int Int
+basic tile = RenderMeth { srcInfo = length . show, renderF = (\params val -> forceSize params tile $ show val) }
+
+combEqualSize:: (Show a) => RenderMethod [a] String Int Int
+combEqualSize = combine (+) (++) pFromSrcInfo (repeat $ basic "_")
+	where
+		pFromSrcInfo params listSrcInfo = repeat $ maximum listSrcInfo
+
+combDivSize :: (Show a) => RenderMethod [a] String Int Int
+combDivSize = combine (+) (++) pFromSrcInfo (repeat $ basic "_")
+	where
+		pFromSrcInfo params listSrcInfo = repeat $ params `div` length listSrcInfo
+combDivSizeWith :: (Show a) => String -> RenderMethod [a] String Int Int
+combDivSizeWith sep = combine concInfo concRepr pFromSrcInfo (repeat $ basic "_")
+	where
+		concInfo l r = l + length sep + r
+		concRepr l r = l ++ sep ++ r
+		pFromSrcInfo params listSrcInfo = repeat $ (params - (length listSrcInfo - 1)) `div` length listSrcInfo
+
+
+forceSize size tile str = take size $ str ++ cycle tile
+
 {-
 combHori2 = combine2 hori
 combVert2 = combine2 vert
 -}
 
+{-
 combine2 indexDim = combine2' (mmappend indexDim)
 
 combine2' :: ReprComb repr -> RenderFunction srcL repr -> RenderFunction srcR repr -> RenderFunction (srcL,srcR) repr
@@ -91,11 +142,10 @@ combine concat sizeList rndrMethList = case sizeList of
 		(rndrFuncL sizeL srcL) `concat` (rndrFuncR sizeR srcR)
 -}
 
-type Size a = (a, a)
-type Count = Int 
 
 {-
 hori :: Monoid repr => DivDist dist -> RenderMethodWithSize srcL repr size -> RenderMethodWithSize srcR repr size -> RenderMethodWithSize (srcL,srcR) repr size
 hori divDist rndrFuncL rndrFuncR size (srcL,srcR) = let sizeL : sizeR : _ = (divHoriFromDivDist divDist) 2 size in
 	(rndrFuncL sizeL srcL) `mappend` (rndrFuncR sizeR srcR)
+-}
 -}
