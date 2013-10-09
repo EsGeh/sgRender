@@ -67,6 +67,11 @@ renderParamsStd = RenderParams {
 	fillTile = " ",
 	parenthesis = ".."
 }
+renderToBlockFixHeight :: Height -> (src -> info) -> RenderParams src char -> RenderMethod src (Block char) Width info
+renderToBlockFixHeight height infoFromSrc params = RenderMeth{
+		renderF = \width -> (renderF $ renderToBlock infoFromSrc params) (width, height),
+		srcInfo = srcInfo $ renderToBlock infoFromSrc params
+}
 
 renderToBlock infoFromSrc params = renderToBlock' infoFromSrc (showF params) (fillTile params)
 
@@ -83,29 +88,26 @@ type Height = Int
 type MinWidth = Width
 type MinHeight = Height
 type Area = Int
+--type BlockSize = 
 
-renderToBlockTest :: Show src => RenderMethod src (Block Char) (Size Int) Area
-renderToBlockTest = renderToBlock (\src -> length $ show src) renderParamsStd{ fillTile="+"}
+renderToBlockTest :: Show src => RenderMethod src (Block Char) Width (Size Int)
+renderToBlockTest = (renderToBlockFixHeight 2) (\src -> (ceiling $ (fromIntegral $ length $ show src) / fromIntegral 2, 2)) renderParamsStd{ fillTile="+"}
 
-horizontal:: [RenderMethod src (Block char) (Size Int) Area] -> RenderMethod [src] (Block char) Height ()
+horizontal :: [RenderMethod src (Block char) (Width) (Size Int)] -> RenderMethod [src] (Block char) () (Size Int)
 horizontal renderMethList = combine
-	(\areaList -> ())
+	(foldl (\l r -> (vecX l + vecX r, max (vecY l) (vecY r))) (0,0))
 	horiBlockComb
 	listSizeFromSrcInfo
 	renderMethList
 	where
-		--infoFromSrc :: src -> MinArea
-		infoFromSrc src = () --(length $ (showF rndrParams) src) `div` height
-		--
-		listSizeFromSrcInfo :: Height -> [Area] -> [Size Int]
-		listSizeFromSrcInfo height listSrcInfo = zip
-			(repeat $ (maximum listSrcInfo) `div` height)
-			(repeat height)
-horiTest :: (Show a) => RenderMethod [a] (Block Char) Height ()
-horiTest = horizontal 
+		listSizeFromSrcInfo :: () -> [Size Int] -> [Width]
+		listSizeFromSrcInfo _ listSize = map vecX listSize
+
+horiTest :: (Show a) => RenderMethod [a] (Block Char) () (Size Int)
+horiTest = horizontal
 	(repeat $ renderToBlockTest) 
 	where
-		infoFromSrc src = length $ show src
+		--infoFromSrc src = length $ show src
 
 --renderMatr = horizontal rndrParamsStd 1
 

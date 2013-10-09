@@ -17,6 +17,10 @@ data RenderMethod src repr params srcInfo = RenderMeth {
 	renderF :: RenderFunction src repr params
 }
 
+mapOnRenderF newRenderF renderMeth = renderMeth{
+	renderF = newRenderF (renderF renderMeth)
+}
+
 -- |a thing that can be concatenated in many ways:
 class MultiMonoid a countDim | a -> countDim where
 	--mmempty :: indexDim -> a
