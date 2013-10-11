@@ -12,6 +12,8 @@ import Data.Monoid
 import Control.Applicative
 import Debug.Trace
 
+import SGData.Tree
+
 data Block a = Block {
 	runBlock :: Matrix a
 }
@@ -31,7 +33,7 @@ instance (Show a) => Show (Block a) where
 -}
 
 horiBlockComb :: ReprComb (Block a)
-horiBlockComb l@(Block matrL) r@(Block matrR) = if (vecX $ mGetSize $ matrL) /= (vecX $ mGetSize $ matrR) && not ((mGetSize matrR)==(0,0) || (mGetSize matrR)==(0,0) )
+horiBlockComb l@(Block matrL) r@(Block matrR) = if (vecX $ mGetSize $ matrL) /= (vecX $ mGetSize $ matrR) && not ((mGetSize matrL)==(0,0) || (mGetSize matrR)==(0,0) )
 	then error "horiBlock Exception"
 	else Block $ m (vecX $ mGetSize matrL, (vecY $ mGetSize matrL) + (vecY $ mGetSize matrR)) valFromIndex
 	where
@@ -40,7 +42,7 @@ horiBlockComb l@(Block matrL) r@(Block matrR) = if (vecX $ mGetSize $ matrL) /= 
 			else mGet (index |-| (0, vecY (mGetSize matrL))) matrR
 
 vertBlockComb :: ReprComb (Block a)
-vertBlockComb l@(Block matrL) r@(Block matrR) = if (vecY $ mGetSize $ matrL) /= (vecY $ mGetSize $ matrR) && not ((mGetSize matrR)==(0,0) || (mGetSize matrR)==(0,0) )
+vertBlockComb l@(Block matrL) r@(Block matrR) = if (vecY $ mGetSize $ matrL) /= (vecY $ mGetSize $ matrR) && not ((mGetSize matrL)==(0,0) || (mGetSize matrR)==(0,0) )
 	then error "vertBlock Exception"
 	else Block $ m ((vecX $ mGetSize matrL) + (vecX $ mGetSize matrR), vecY $ mGetSize matrL) valFromIndex
 	where
@@ -67,8 +69,6 @@ type DimRel value = (IndexDim, value) -> value -- IndexDim -> value -> value
 sizeFromValue defOneDim dimRel = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
 	(x,y)
 
---bla :: DefOneDim value -> Size Int -> 
-
 renderToBlock :: Show src => RenderToBlockParams src char -> RenderMethod
 	src
 	(Block char)
@@ -81,64 +81,78 @@ renderToBlock params = renderToBlock'
 	where
 		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ show src) / fromIntegral value
 
-horizontal listRenderMeth = combine
+horizontal calcSubParams concatInfo listRenderMeth = combine
 	concatInfo
 	horiBlockComb
 	calcSubParams
 	listRenderMeth
-	where
-		calcSubParams :: Size Int -> [DimRel Int] -> [Size Int]
-		calcSubParams size listDimRel = zip
-			(divF (vecX size) $ (zipWith (\f x -> f x) listDimRel (repeat $ (1,vecY size))))
-			(repeat $ vecY size)
 
-		--calcSubParams :: DefOneDim Int -> [DimRel Int] -> [Size Int]
-		{-
-		calcSubParams defOneDim listDimRel = repeat $ 
-			foldl (\l r -> (max (vecX l) (vecX r), max (vecY l) (vecY r))) (0,0) $
-				map (sizeFromValue defOneDim) listDimRel
-		-}
-		concatInfo :: [DimRel Int] -> DimRel Int 
-		concatInfo listDimRel defOneDim = (case fst defOneDim of {0 -> snd; 1 -> fst}) $ foldl
-			(\l r -> ((vecX l) + (vecX r), max (vecY l) (vecY r) ))
-			(0,0) 
-			((\a -> trace (show a) a) $ zipWith (\f p -> f p) (map sizeFromValue listDivOneDim) listDimRel)
-			where
-				listDivOneDim = (\a -> trace (show a) a) $ case fst defOneDim of
-					1 -> take (length listDimRel) $ repeat defOneDim
-					0 -> zip
-						(repeat 0)
-						(divDiff (snd defOneDim) (length listDimRel))
-		{-
-		concatInfo listDimRel defOneDim = (case fst defOneDim of {0 -> snd; 1 -> fst}) $ foldl
-			(\l r -> ((vecX l) + (vecX r), max (vecY l) (vecY r) ))
-			(0,0) 
-			(map (sizeFromValue defOneDim) listDimRel)
-		-}
-
-vertical listRenderMeth = combine
+vertical calcSubParams concatInfo listRenderMeth = combine
 	concatInfo
 	vertBlockComb
 	calcSubParams
 	listRenderMeth
+
+
+vertBlocks :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Height MinHeight
+vertBlocks divDist = vertical calcSizeVert calcInfo $
+	repeat $ renderToBlock renderToBlockParamsStd
 	where
-		calcSubParams :: Size Int -> [DimRel Int] -> [Size Int]
-		calcSubParams size listDimRel = zip
-			(repeat $ vecX size)
-			(divF (vecY size) $ (zipWith (\f x -> f x) listDimRel (repeat $ (0,vecX size))))
+		calcSizeVert :: Height -> [DimRel Int] -> [Size Int]
+		calcSizeVert height listDimRel = zip
+			(take (length listDimRel) $ repeat $ maximum $ zipWith (\f s -> f s) listDimRel (repeat (1,1)))
+			(divDist height $ take (length listDimRel) $ repeat 1)
+			--(take (length listDimRel -1) (repeat 1) ++ [ height - (length listDimRel -1)])
+		calcInfo listDimRel = length listDimRel
 
-		concatInfo :: [DimRel Int] -> DimRel Int 
-		concatInfo listDimRel defOneDim = (case fst defOneDim of {0 -> snd; 1 -> fst}) $ foldl
-			(\l r -> (max (vecX l) (vecX r), (vecY l) + (vecY r) ))
-			(0,0) 
-			(map (sizeFromValue defOneDim) listDimRel)
+horiBlocks :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
+horiBlocks divDist = horizontal calcSizeVert calcInfo $
+	repeat $ renderToBlock renderToBlockParamsStd
+	where
+		calcSizeVert :: Width -> [DimRel Int] -> [Size Int]
+		calcSizeVert width listDimRel = (\a -> trace (show a) a) $ zip
+			(divDist width $ zipWith (\f s -> f s) listDimRel (repeat (1,1)))
+			(repeat 1)
+		calcInfo listDimRel = sum (zipWith (\f s -> f s) listDimRel (repeat (1,1)))
+
+test :: Show src => RenderMethod [[src]] (Block Char) () ()
+test = horizontal calcSubParamsHori calcInfoHori $ repeat $
+	vertBlocks divDontDeform
+	where
+		calcSubParamsHori _ listHeight = repeat $ maximum listHeight
+		calcInfoHori _ = ()
+
+test2 :: Show src => RenderMethod [[src]] (Block Char) () ()
+test2 = vertical calcSubParamsHori calcInfoHori $ repeat $
+	horiBlocks divDontDeform
+	where
+		calcSubParamsHori _ listWidth = repeat $ maximum listWidth
+		calcInfoHori _ = ()
+
+{-
+renderTree :: Show src => RenderMethod (Tree src) (Block Char) Width Width
+renderTree = RenderMeth {
+	renderF = newRenderF,
+	srcInfo = const ()
+}
+	where
+		newRenderF width src = (renderF $ vertBlocks divDontDeform) width $
+			[value src, ]
+-}
 
 
-testHori = (renderF testHori') (13,1) [1..11]
-testHori' = horizontal $ repeat (renderToBlock renderToBlockParamsStd)
+type DivDist a = a -> [a] -> [a]
 
-divF :: Int -> [Int] -> [Int]
-divF maxWidth listWidth = zipWith (+) (divDiff diff (length listWidth)) listWidth
+divDontDeform :: Int -> [Int] -> [Int]
+divDontDeform maxDist listDist = case listDist of
+	[] -> []
+	x:[] -> [maxDist]
+	(x:xs) -> if x > maxDist
+		then maxDist:( take (length xs) $ repeat 0)
+		else x : (divDontDeform (maxDist - x) xs)
+
+divEqual :: Int -> [Int] -> [Int]
+divEqual maxWidth listWidth = zipWith (+) (divDiff diff (length listWidth)) listWidth
 	where
 		diff = maxWidth - sum listWidth
 
@@ -148,34 +162,6 @@ divDiff diff count = case count of
 	_ -> let oneElem = fromIntegral diff / fromIntegral count in
 		(ceiling oneElem) : divDiff (diff - ceiling oneElem) (count-1)
 
-{-
-vertical listRenderMeth = combine
-	concatInfo
-	vertBlockComb
-	calcSubParams
-	listRenderMeth
-	where
-		--calcSubParams :: Size Int -> [DimRel Int] -> [Size Int]
-		calcSubParams size _ = repeat size
-		{-
-		calcSubParams :: DefOneDim Int -> [DimRel Int] -> [Size Int]
-		calcSubParams defOneDim listDimRel = repeat $ 
-			foldl (\l r -> (max (vecX l) (vecX r), max (vecY l) (vecY r))) (0,0) $
-				map (sizeFromValue defOneDim) listDimRel
-		-}
-		concatInfo :: [DimRel Int] -> DimRel Int 
-		concatInfo listDimRel defOneDim = (case fst defOneDim of {0 -> snd; 1 -> fst}) $ foldl
-			(\l r -> (max (vecX l) (vecX r), (vecY l) + (vecY r) ))
-			(0,0) 
-			(map (sizeFromValue defOneDim) listDimRel)
--}
-
-test :: Show src => RenderMethod [[src]] (Block Char) (DefOneDim Int) (DimRel Int)
-test = vertical $ repeat $
-	horizontal $ repeat $
-		renderToBlock renderToBlockParamsStd
-
---renderToBlock infoFromSrc params = renderToBlock' infoFromSrc (showF params) (fillTile params)
 
 renderToBlock' :: (src -> srcInfo) -> (src -> [char]) -> [char] -> RenderMethod src (Block char) (Size Int) srcInfo 
 renderToBlock' infoFromSrc showF fillTile = RenderMeth {
