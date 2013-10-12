@@ -66,7 +66,7 @@ type IndexDim = Int
 type DefOneDim value = (IndexDim, value)
 type DimRel value = (IndexDim, value) -> value -- IndexDim -> value -> value
 
-sizeFromValue defOneDim dimRel = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
+sizeFromValue dimRel defOneDim = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
 	(x,y)
 
 renderToBlock :: Show src => RenderToBlockParams src char -> RenderMethod
@@ -94,8 +94,8 @@ vertical calcSubParams concatInfo listRenderMeth = combine
 	listRenderMeth
 
 
-vertBlocks :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Height MinHeight
-vertBlocks divDist = vertical calcSizeVert calcInfo $
+renderListVerticalFromHeight :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Height MinHeight
+renderListVerticalFromHeight divDist = vertical calcSizeVert calcInfo $
 	repeat $ renderToBlock renderToBlockParamsStd
 	where
 		calcSizeVert :: Height -> [DimRel Int] -> [Size Int]
@@ -105,8 +105,18 @@ vertBlocks divDist = vertical calcSizeVert calcInfo $
 			--(take (length listDimRel -1) (repeat 1) ++ [ height - (length listDimRel -1)])
 		calcInfo listDimRel = length listDimRel
 
-horiBlocks :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
-horiBlocks divDist = horizontal calcSizeVert calcInfo $
+renderListVerticalFromWidth :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
+renderListVerticalFromWidth divDist = vertical calcSizeVert calcInfo $
+	repeat $ renderToBlock renderToBlockParamsStd
+	where
+		calcSizeVert :: Width -> [DimRel Int] -> [Size Int]
+		calcSizeVert width listDimRel = zip
+			(repeat width)
+			(take (length listDimRel) $ repeat 1)
+		calcInfo listDimRel = maximum $ listDimRel <*> [(1,1),(1,1)]
+
+renderListHorizontalFromWidth :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
+renderListHorizontalFromWidth divDist = horizontal calcSizeVert calcInfo $
 	repeat $ renderToBlock renderToBlockParamsStd
 	where
 		calcSizeVert :: Width -> [DimRel Int] -> [Size Int]
@@ -117,28 +127,50 @@ horiBlocks divDist = horizontal calcSizeVert calcInfo $
 
 test :: Show src => RenderMethod [[src]] (Block Char) () ()
 test = horizontal calcSubParamsHori calcInfoHori $ repeat $
-	vertBlocks divDontDeform
+	renderListVerticalFromHeight divDontDeform
 	where
 		calcSubParamsHori _ listHeight = repeat $ maximum listHeight
 		calcInfoHori _ = ()
 
 test2 :: Show src => RenderMethod [[src]] (Block Char) () ()
 test2 = vertical calcSubParamsHori calcInfoHori $ repeat $
-	horiBlocks divDontDeform
+	renderListHorizontalFromWidth divDontDeform
 	where
 		calcSubParamsHori _ listWidth = repeat $ maximum listWidth
 		calcInfoHori _ = ()
 
-{-
+testTree = node 1 $ [ leaf 1.1, leaf 1.2 ]
+
 renderTree :: Show src => RenderMethod (Tree src) (Block Char) Width Width
 renderTree = RenderMeth {
 	renderF = newRenderF,
-	srcInfo = const ()
+	srcInfo = newSrcInfo
 }
 	where
-		newRenderF width src = (renderF $ vertBlocks divDontDeform) width $
-			[value src, ]
--}
+		newRenderF width src = (renderF $ renderHeadAndSubTrees) width $
+			(value src, children src)
+		newSrcInfo tree = (srcInfo renderHeadAndSubTrees) (value tree, children tree)
+
+renderHeadAndSubTrees :: Show src => RenderMethod (src,[Tree src]) (Block Char) Width Width
+renderHeadAndSubTrees = combine2
+	combineSrcInfo
+	vertBlockComb
+	calcSubParams
+	(renderToBlock renderToBlockParamsStd)
+	renderSubTrees
+	where
+		combineSrcInfo dimRelU widthD = max (dimRelU (1,1)) widthD --(dimRel (1,1)) (dimRelR (1,1))
+
+		calcSubParams :: Width -> (DimRel Int, Width) -> (Size Int, Width)
+		calcSubParams widthAllInAll (dimRelU,widthD) = ((widthAllInAll,1),widthAllInAll) -- ((sizeFromValue dimRel) (1,1), (sizeFromValue dimRelR) (1,1))
+
+renderSubTrees :: Show src => RenderMethod [Tree src] (Block Char) Width Width
+renderSubTrees = horizontal
+	calcSubParams
+	(\listWidth -> maximum listWidth) 
+	(repeat renderTree)
+	where
+		calcSubParams width listWidth = divEqual width listWidth
 
 
 type DivDist a = a -> [a] -> [a]
