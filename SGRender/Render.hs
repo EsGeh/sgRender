@@ -1,5 +1,14 @@
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
-module SGRender.Render where
+module SGRender.Render(
+	-- * RenderMethods
+	ReprComb,RenderFunction,RenderMethod(..),
+	FillFunction,
+	-- * combinator
+	combine, combine2,
+	-- * type class for representations
+	MultiMonoid(..),dimX,dimY,
+	--Binary(..),Size,Count,
+) where
 
 import SGData.Vector2D
 import Card.Card
@@ -17,19 +26,8 @@ data RenderMethod src repr params srcInfo = RenderMeth {
 	renderF :: RenderFunction src repr params
 }
 
-mapOnRenderF newRenderF renderMeth = renderMeth{
-	renderF = newRenderF (renderF renderMeth)
-}
-
--- |a thing that can be concatenated in many ways:
-class MultiMonoid a countDim | a -> countDim where
-	--mmempty :: indexDim -> a
-	mmappend :: Card n => n -> a -> a -> a
-
-hori = n0
-vert = n1
-
 type Binary a = a -> a -> a
+type FillFunction param repr = param -> repr
 
 --type CombineSrcInfo = [srcInfo] -> 
 
@@ -37,10 +35,10 @@ type Binary a = a -> a -> a
 	1. listConstr
 -}
 
-combine :: ([srcInfoSub] -> srcInfo) -> Binary repr -> (param -> repr) -> (param -> [srcInfoSub] -> [paramSubMeth]) 
+combine :: Binary repr -> FillFunction param repr -> (param -> [srcInfoSub] -> [paramSubMeth]) -> ([srcInfoSub] -> srcInfo) 
 	-> [RenderMethod src repr paramSubMeth srcInfoSub]
 	-> RenderMethod [src] repr param srcInfo
-combine concInfo concRepr fillEmpty listParamsFromListSrcInfo rndrMethList = RenderMeth {
+combine concRepr fillEmpty listParamsFromListSrcInfo concInfo rndrMethList = RenderMeth {
 	srcInfo = newSrcInfo,
 	renderF = newRenderF
 } where
@@ -51,11 +49,11 @@ combine concInfo concRepr fillEmpty listParamsFromListSrcInfo rndrMethList = Ren
 	listParams param listSrc = listParamsFromListSrcInfo param $ listSrcInfo listSrc
 	listSrcInfo listSrc = zipWith (\f s -> (srcInfo f) s) rndrMethList listSrc
 
-combine2 :: (srcInfoSubL -> srcInfoSubR -> srcInfo) -> (reprL -> reprR -> repr) -> (param -> (srcInfoSubL,srcInfoSubR) -> (paramSubMethL,paramSubMethR))
+combine2 :: (reprL -> reprR -> repr) -> (param -> (srcInfoSubL,srcInfoSubR) -> (paramSubMethL,paramSubMethR))-> (srcInfoSubL -> srcInfoSubR -> srcInfo) 
 	-> RenderMethod srcL reprL paramSubMethL srcInfoSubL 
 	-> RenderMethod srcR reprR paramSubMethR srcInfoSubR
 	-> RenderMethod (srcL,srcR) repr param srcInfo
-combine2 concInfo concRepr paramsFromListSrcInfo rndrMethL rndrMethR = RenderMeth {
+combine2 concRepr paramsFromListSrcInfo concInfo rndrMethL rndrMethR = RenderMeth {
 	srcInfo = newSrcInfo,
 	renderF = newRenderF
 } where
@@ -69,6 +67,15 @@ combine2 concInfo concRepr paramsFromListSrcInfo rndrMethL rndrMethR = RenderMet
 	paramSub param sources = paramsFromListSrcInfo param $ sourcesInfo sources
 	sourcesInfo (srcL,srcR) = ((srcInfo rndrMethL) srcL, (srcInfo rndrMethR) srcR) 
 
+-- |a thing that can be concatenated in many ways:
+class MultiMonoid a countDim | a -> countDim where
+	--mmempty :: indexDim -> a
+	mmappend :: Card n => n -> a -> a -> a
+
+dimX = n0
+dimY = n1
+
+combineMM dim = combine (mmappend dim)
+
 type Size a = (a, a)
 type Count = Int 
-

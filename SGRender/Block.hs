@@ -1,5 +1,18 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
-module SGRender.Block where
+module SGRender.Block(
+	-- * basic types
+	Block(),
+	-- * basic renderMethods
+	renderToBlock, renderToBlockParamsStd, RenderToBlockParams(..),
+	filledBlock,
+	-- * combinators
+	horizontal, vertical,
+	-- * rendering from lists
+	renderListHorizontalFromWidth,
+	renderListVerticalFromWidth, renderListVerticalFromHeight,
+	-- * rendering a tree
+	renderTree,
+) where
 
 import SGRender.Render
 
@@ -27,10 +40,6 @@ instance Show (Block Char) where
 	show block =  showMatrix (runBlock block)
 
 showMatrix matr = unlines $ [mGetRow iRow matr | iRow <- mGetAllIndexRow matr]
-{-
-instance (Show a) => Show (Block a) where
-	show block = show $ (runBlock block)
--}
 
 horiBlockComb :: ReprComb (Block a)
 horiBlockComb l@(Block matrL) r@(Block matrR) = if (mGetSize matrL)==(0,0) 
@@ -88,17 +97,17 @@ renderToBlock params = renderToBlock'
 		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ show src) / fromIntegral value
 
 horizontal fillEmpty calcSubParams concatInfo listRenderMeth = combine
-	concatInfo
 	horiBlockComb
 	fillEmpty
 	calcSubParams
+	concatInfo
 	listRenderMeth
 
 vertical fillEmpty calcSubParams concatInfo listRenderMeth = combine
-	concatInfo
 	vertBlockComb
 	fillEmpty
 	calcSubParams
+	concatInfo
 	listRenderMeth
 
 filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $ repeat $
@@ -164,9 +173,9 @@ renderTree = RenderMeth {
 
 renderHeadAndSubTrees :: Show src => RenderMethod (src,[Tree src]) (Block Char) (Size Int) (Size Int)
 renderHeadAndSubTrees = combine2
-	combineSrcInfo
 	vertBlockComb
 	calcSubParams
+	combineSrcInfo
 	(renderToBlock renderToBlockParamsStd)
 	renderSubTrees
 	where
@@ -240,6 +249,8 @@ type Height = Int
 type MinWidth = Width
 type MinHeight = Height
 type Area = Int
+
+type Size a = Vec a
 
 chop width list = case list of
 	[] -> [] 
