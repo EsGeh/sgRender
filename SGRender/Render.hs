@@ -37,7 +37,9 @@ type Binary a = a -> a -> a
 	1. listConstr
 -}
 
-combine :: ([srcInfoSub] -> srcInfo) -> Binary repr -> (param -> [srcInfoSub] -> [paramSubMeth]) -> [RenderMethod src repr paramSubMeth srcInfoSub] -> RenderMethod [src] repr param srcInfo
+combine :: ([srcInfoSub] -> srcInfo) -> Binary repr -> (param -> [srcInfoSub] -> [paramSubMeth]) 
+	-> [RenderMethod src repr paramSubMeth srcInfoSub]
+	-> RenderMethod [src] repr param srcInfo
 combine concInfo concRepr listParamsFromListSrcInfo rndrMethList = RenderMeth {
 	srcInfo = newSrcInfo,
 	renderF = newRenderF
@@ -47,6 +49,23 @@ combine concInfo concRepr listParamsFromListSrcInfo rndrMethList = RenderMeth {
 	listParams param listSrc = listParamsFromListSrcInfo param $ listSrcInfo listSrc
 	listSrcInfo listSrc = zipWith (\f s -> (srcInfo f) s) rndrMethList listSrc
 
+combine2 :: (srcInfoSubL -> srcInfoSubR -> srcInfo) -> (reprL -> reprR -> repr) -> (param -> (srcInfoSubL,srcInfoSubR) -> (paramSubMethL,paramSubMethR))
+	-> RenderMethod srcL reprL paramSubMethL srcInfoSubL 
+	-> RenderMethod srcR reprR paramSubMethR srcInfoSubR
+	-> RenderMethod (srcL,srcR) repr param srcInfo
+combine2 concInfo concRepr paramsFromListSrcInfo rndrMethL rndrMethR = RenderMeth {
+	srcInfo = newSrcInfo,
+	renderF = newRenderF
+} where
+	newSrcInfo sources = (uncurry concInfo) (sourcesInfo sources) --(foldl1 concInfo $ listSrcInfo listSrc)
+	--newRenderF :: 
+	newRenderF param sources@(srcL,srcR) = 
+		concRepr 
+			((renderF rndrMethL) (fst $ paramSub param sources) srcL)
+			((renderF rndrMethR) (snd $ paramSub param sources) srcR)
+		--foldl1 concRepr $ zipWith3 (\params f s -> (renderF f) params s) (listParams param listSrc) rndrMethList listSrc
+	paramSub param sources = paramsFromListSrcInfo param $ sourcesInfo sources
+	sourcesInfo (srcL,srcR) = ((srcInfo rndrMethL) srcL, (srcInfo rndrMethR) srcR) 
 
 type Size a = (a, a)
 type Count = Int 
