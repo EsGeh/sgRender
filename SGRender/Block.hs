@@ -33,22 +33,28 @@ instance (Show a) => Show (Block a) where
 -}
 
 horiBlockComb :: ReprComb (Block a)
-horiBlockComb l@(Block matrL) r@(Block matrR) = if (vecX $ mGetSize $ matrL) /= (vecX $ mGetSize $ matrR) && not ((mGetSize matrL)==(0,0) || (mGetSize matrR)==(0,0) )
-	then error "horiBlock Exception"
-	else Block $ m (vecX $ mGetSize matrL, (vecY $ mGetSize matrL) + (vecY $ mGetSize matrR)) valFromIndex
-	where
-		valFromIndex index@(row,col) = if col < vecY (mGetSize matrL)
-			then mGet index matrL
-			else mGet (index |-| (0, vecY (mGetSize matrL))) matrR
+horiBlockComb l@(Block matrL) r@(Block matrR) = if (mGetSize matrL)==(0,0) 
+	then (Block matrR)
+	else if ((mGetSize matrR) == (0,0)) then (Block matrL)
+		else if (vecX $ mGetSize $ matrL) /= (vecX $ mGetSize $ matrR) 
+			then error "horiBlock Exception"
+			else Block $ m (vecX $ mGetSize matrL, (vecY $ mGetSize matrL) + (vecY $ mGetSize matrR)) valFromIndex
+			where
+				valFromIndex index@(row,col) = if col < vecY (mGetSize matrL)
+					then mGet index matrL
+					else mGet (index |-| (0, vecY (mGetSize matrL))) matrR
 
 vertBlockComb :: ReprComb (Block a)
-vertBlockComb l@(Block matrL) r@(Block matrR) = if (vecY $ mGetSize $ matrL) /= (vecY $ mGetSize $ matrR) && not ((mGetSize matrL)==(0,0) || (mGetSize matrR)==(0,0) )
-	then error "vertBlock Exception"
-	else Block $ m ((vecX $ mGetSize matrL) + (vecX $ mGetSize matrR), vecY $ mGetSize matrL) valFromIndex
-	where
-		valFromIndex index@(row,col) = if row < vecX (mGetSize matrL)
-			then mGet index matrL
-			else mGet (index |-| (vecX (mGetSize matrL),0)) matrR
+vertBlockComb l@(Block matrL) r@(Block matrR) = if (mGetSize matrL)==(0,0) 
+	then (Block matrR)
+	else if ((mGetSize matrR) == (0,0)) then (Block matrL)
+		else if (vecY $ mGetSize $ matrL) /= (vecY $ mGetSize $ matrR) 
+			then error "vertBlock Exception"
+			else Block $ m ((vecX $ mGetSize matrL) + (vecX $ mGetSize matrR), vecY $ mGetSize matrL) valFromIndex
+			where
+				valFromIndex index@(row,col) = if row < vecX (mGetSize matrL)
+					then mGet index matrL
+					else mGet (index |-| (vecX (mGetSize matrL),0)) matrR
 
 data RenderToBlockParams src char = RenderToBlockParams {
 	showF :: (src -> [char]),
@@ -81,21 +87,26 @@ renderToBlock params = renderToBlock'
 	where
 		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ show src) / fromIntegral value
 
-horizontal calcSubParams concatInfo listRenderMeth = combine
+horizontal fillEmpty calcSubParams concatInfo listRenderMeth = combine
 	concatInfo
 	horiBlockComb
+	fillEmpty
 	calcSubParams
 	listRenderMeth
 
-vertical calcSubParams concatInfo listRenderMeth = combine
+vertical fillEmpty calcSubParams concatInfo listRenderMeth = combine
 	concatInfo
 	vertBlockComb
+	fillEmpty
 	calcSubParams
 	listRenderMeth
 
+filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $ repeat $
+	take (vecX size) $ cycle fillTile
+zeroBlock = Block $ m (0,0) (const 'x')
 
 renderListVerticalFromHeight :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Height MinHeight
-renderListVerticalFromHeight divDist = vertical calcSizeVert calcInfo $
+renderListVerticalFromHeight divDist = vertical (\height -> filledBlock " " (1,height)) calcSizeVert calcInfo $
 	repeat $ renderToBlock renderToBlockParamsStd
 	where
 		calcSizeVert :: Height -> [DimRel Int] -> [Size Int]
@@ -106,7 +117,7 @@ renderListVerticalFromHeight divDist = vertical calcSizeVert calcInfo $
 		calcInfo listDimRel = length listDimRel
 
 renderListVerticalFromWidth :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
-renderListVerticalFromWidth divDist = vertical calcSizeVert calcInfo $
+renderListVerticalFromWidth divDist = vertical (\width -> filledBlock " " (width,1)) calcSizeVert calcInfo $
 	repeat $ renderToBlock renderToBlockParamsStd
 	where
 		calcSizeVert :: Width -> [DimRel Int] -> [Size Int]
@@ -116,7 +127,7 @@ renderListVerticalFromWidth divDist = vertical calcSizeVert calcInfo $
 		calcInfo listDimRel = maximum $ listDimRel <*> [(1,1),(1,1)]
 
 renderListHorizontalFromWidth :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
-renderListHorizontalFromWidth divDist = horizontal calcSizeVert calcInfo $
+renderListHorizontalFromWidth divDist = horizontal (\width -> filledBlock " " (width,1)) calcSizeVert calcInfo $
 	repeat $ renderToBlock renderToBlockParamsStd
 	where
 		calcSizeVert :: Width -> [DimRel Int] -> [Size Int]
@@ -126,32 +137,32 @@ renderListHorizontalFromWidth divDist = horizontal calcSizeVert calcInfo $
 		calcInfo listDimRel = sum (zipWith (\f s -> f s) listDimRel (repeat (1,1)))
 
 test :: Show src => RenderMethod [[src]] (Block Char) () ()
-test = horizontal calcSubParamsHori calcInfoHori $ repeat $
+test = horizontal (\_ -> zeroBlock) calcSubParamsHori calcInfoHori $ repeat $
 	renderListVerticalFromHeight divDontDeform
 	where
 		calcSubParamsHori _ listHeight = repeat $ maximum listHeight
 		calcInfoHori _ = ()
 
 test2 :: Show src => RenderMethod [[src]] (Block Char) () ()
-test2 = vertical calcSubParamsHori calcInfoHori $ repeat $
+test2 = vertical (const zeroBlock) calcSubParamsHori calcInfoHori $ repeat $
 	renderListHorizontalFromWidth divDontDeform
 	where
 		calcSubParamsHori _ listWidth = repeat $ maximum listWidth
 		calcInfoHori _ = ()
 
-testTree = node 1 $ [ leaf 1.1, leaf 1.2 ]
+testTree = node 1 $ [ leaf 1.1, leaf 1.2, node 1.3 [ leaf 2, leaf 3] ]
 
-renderTree :: Show src => RenderMethod (Tree src) (Block Char) Width Width
+renderTree :: Show src => RenderMethod (Tree src) (Block Char) (Size Int) (Size Int)
 renderTree = RenderMeth {
 	renderF = newRenderF,
 	srcInfo = newSrcInfo
 }
 	where
-		newRenderF width src = (renderF $ renderHeadAndSubTrees) width $
+		newRenderF size src = (renderF $ renderHeadAndSubTrees) size $
 			(value src, children src)
 		newSrcInfo tree = (srcInfo renderHeadAndSubTrees) (value tree, children tree)
 
-renderHeadAndSubTrees :: Show src => RenderMethod (src,[Tree src]) (Block Char) Width Width
+renderHeadAndSubTrees :: Show src => RenderMethod (src,[Tree src]) (Block Char) (Size Int) (Size Int)
 renderHeadAndSubTrees = combine2
 	combineSrcInfo
 	vertBlockComb
@@ -159,18 +170,39 @@ renderHeadAndSubTrees = combine2
 	(renderToBlock renderToBlockParamsStd)
 	renderSubTrees
 	where
-		combineSrcInfo dimRelU widthD = max (dimRelU (1,1)) widthD --(dimRel (1,1)) (dimRelR (1,1))
+		combineSrcInfo dimRelHead sizeChildren = (
+			max (dimRelHead (1,1)) (vecX sizeChildren),
+			1 + vecY sizeChildren)
+		--max (dimRelU (1,1)) widthD 
 
-		calcSubParams :: Width -> (DimRel Int, Width) -> (Size Int, Width)
-		calcSubParams widthAllInAll (dimRelU,widthD) = ((widthAllInAll,1),widthAllInAll) -- ((sizeFromValue dimRel) (1,1), (sizeFromValue dimRelR) (1,1))
+		calcSubParams :: Size Int -> (DimRel Int, Size Int) -> (Size Int, Size Int)
+		calcSubParams wholeSize (dimRelU,sizeD) = (
+			(width, heightHead),
+			(width, heightChildren))
+			where
+				width = vecX wholeSize
+				heightHead : heightChildren : _ = divDontDeform (vecY wholeSize)
+					[1, vecY sizeD]
+				--((widthAllInAll,1),widthAllInAll) 
 
-renderSubTrees :: Show src => RenderMethod [Tree src] (Block Char) Width Width
-renderSubTrees = horizontal
+renderSubTrees :: Show src => RenderMethod [Tree src] (Block Char) (Size Int) (Size Int)
+renderSubTrees = horizontal (\size -> filledBlock "+" size)
 	calcSubParams
-	(\listWidth -> maximum listWidth) 
+	(\listSize -> case listSize of
+		[] -> (0,0)
+		_ -> foldl1 (\l r -> ((vecX l) + (vecX r), max (vecY l) (vecY r))) $
+			listSize)
+			--(maximum listWidth,length listWidth)) 
 	(repeat renderTree)
 	where
-		calcSubParams width listWidth = divEqual width listWidth
+		calcSubParams size listSize = zip
+			(divEqual (vecX size) (map vecX listSize))
+			(repeat $ vecY size)
+
+renderMinimal renderMeth src = case renderMeth of 
+	RenderMeth{ renderF=renderF, srcInfo=srcInfo} -> renderF (srcInfo src) src
+
+testRenderTree = (renderF $ renderTree) (20,20) testTree
 
 
 type DivDist a = a -> [a] -> [a]
