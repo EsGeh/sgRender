@@ -17,8 +17,8 @@ module SGRender.Block(
 import SGRender.Render
 
 import SGData.Vector2D
-import Card.Card
-import Card.Unary
+import SGCard.Card
+import SGCard.Unary
 import SGData.Matrix hiding(Width,Height)
 import Data.Maybe
 import Data.Monoid
@@ -114,6 +114,61 @@ filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $
 	take (vecX size) $ cycle fillTile
 zeroBlock = Block $ m (0,0) (const 'x')
 
+renderListGenHori :: Show src => Height -> DivDist Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+renderListGenHori height divDist listRenderMeth = horizontal
+	(\size -> filledBlock " " size)
+	calcSize
+	calcInfo
+	listRenderMeth
+	where
+		calcSize :: Size Int -> [DimRel Int] -> [Size Int]
+		calcSize size listDimRel = zip
+			(divDist (vecX size) $ zipWith (\f s -> f s) listDimRel (repeat (1,vecY size)))
+			(repeat $ vecY size)
+		calcInfo listDimRel defOneDim = case fst defOneDim of
+			0 -> height
+			1 ->  sum $ listDimRel <*> [defOneDim]
+				{-
+				foldl
+				(\l r -> (vecX l + vecX r))
+				(0,0) $
+					listDimRel <*> [defOneDim]
+					-}
+renderListGenVert :: Show src => Height -> DivDist Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+renderListGenVert height divDist listRenderMeth = vertical
+	(\size -> filledBlock " " size)
+	calcSize
+	calcInfo
+	listRenderMeth
+	where
+		calcSize :: Size Int -> [DimRel Int] -> [Size Int]
+		calcSize size listDimRel = zip
+			(repeat (vecX size))
+			(divDist (vecY size) $ take (length listDimRel) $ repeat height)
+		calcInfo listDimRel defOneDim = case fst defOneDim of
+			0 -> height*(length listDimRel)
+			1 ->  maximum $ listDimRel <*> [(1,height)]
+
+testGenHori :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+testGenHori = renderListGenHori 1 divEqual (repeat $ renderToBlock renderToBlockParamsStd)
+testGenVert :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+testGenVert = renderListGenVert 1 divEqual (repeat $ renderToBlock renderToBlockParamsStd)
+
+testGen :: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
+testGen = renderListGenHori 1 divEqual $
+	repeat $ renderListGenVert 1 divEqual $
+		repeat $ renderToBlock renderToBlockParamsStd
+
+renderListHorizontalFromWidth :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
+renderListHorizontalFromWidth divDist = horizontal (\width -> filledBlock " " (width,1)) calcSizeVert calcInfo $
+	repeat $ renderToBlock renderToBlockParamsStd
+	where
+		calcSizeVert :: Width -> [DimRel Int] -> [Size Int]
+		calcSizeVert width listDimRel = (\a -> trace (show a) a) $ zip
+			(divDist width $ zipWith (\f s -> f s) listDimRel (repeat (1,1)))
+			(repeat 1)
+		calcInfo listDimRel = sum (zipWith (\f s -> f s) listDimRel (repeat (1,1)))
+
 renderListVerticalFromHeight :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Height MinHeight
 renderListVerticalFromHeight divDist = vertical (\height -> filledBlock " " (1,height)) calcSizeVert calcInfo $
 	repeat $ renderToBlock renderToBlockParamsStd
@@ -135,15 +190,6 @@ renderListVerticalFromWidth divDist = vertical (\width -> filledBlock " " (width
 			(take (length listDimRel) $ repeat 1)
 		calcInfo listDimRel = maximum $ listDimRel <*> [(1,1),(1,1)]
 
-renderListHorizontalFromWidth :: Show src => DivDist Int -> RenderMethod [src] (Block Char) Width MinWidth
-renderListHorizontalFromWidth divDist = horizontal (\width -> filledBlock " " (width,1)) calcSizeVert calcInfo $
-	repeat $ renderToBlock renderToBlockParamsStd
-	where
-		calcSizeVert :: Width -> [DimRel Int] -> [Size Int]
-		calcSizeVert width listDimRel = (\a -> trace (show a) a) $ zip
-			(divDist width $ zipWith (\f s -> f s) listDimRel (repeat (1,1)))
-			(repeat 1)
-		calcInfo listDimRel = sum (zipWith (\f s -> f s) listDimRel (repeat (1,1)))
 
 test :: Show src => RenderMethod [[src]] (Block Char) () ()
 test = horizontal (\_ -> zeroBlock) calcSubParamsHori calcInfoHori $ repeat $

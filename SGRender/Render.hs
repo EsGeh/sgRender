@@ -11,8 +11,8 @@ module SGRender.Render(
 ) where
 
 import SGData.Vector2D
-import Card.Card
-import Card.Unary
+import SGCard.Card
+import SGCard.Unary
 import Data.Monoid
 import Control.Applicative
 
