@@ -3,6 +3,7 @@ module SGRender.Render(
 	-- * RenderMethods
 	ReprComb,RenderFunction,RenderMethod(..),
 	FillFunction,
+	renderMeth,
 	-- * combinator
 	combine, combine2,
 	-- * type class for representations
@@ -22,8 +23,12 @@ type ReprComb repr = repr -> repr -> repr
 type RenderFunction src dst params = params -> src -> dst
 
 data RenderMethod src repr params srcInfo = RenderMeth {
-	srcInfo :: src -> srcInfo,
-	renderF :: RenderFunction src repr params
+	renderF :: RenderFunction src repr params,
+	srcInfo :: src -> srcInfo
+}
+renderMeth newRenderF newSrcInfo = RenderMeth {
+	srcInfo = newSrcInfo,
+	renderF = newRenderF
 }
 
 type Binary a = a -> a -> a
