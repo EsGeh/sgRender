@@ -86,7 +86,7 @@ sizeFromDimRel :: DimRel val -> (DefOneDim val -> Size val)
 sizeFromDimRel dimRel defOneDim = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
 	(x,y)
 
-renderToBlock :: Show src => RenderToBlockParams src char -> RenderMethod
+renderToBlock :: RenderToBlockParams src char -> RenderMethod
 	src
 	(Block char)
 	(Size Int) -- params
@@ -96,7 +96,7 @@ renderToBlock params = renderToBlock'
 	srcToDimRel
 	(fillTile params)
 	where
-		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ show src) / fromIntegral value
+		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ (showF params) src) / fromIntegral value
 
 
 
