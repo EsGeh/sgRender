@@ -13,6 +13,7 @@ module SGRender.Block (
 	Size,
 	Width, Height,
 	DimRel, DefOneDim,
+	sizeFromDimRel,
 ) where 
 
 import SGRender.Render
@@ -81,8 +82,8 @@ type IndexDim = Int
 type DefOneDim value = (IndexDim, value)
 type DimRel value = (IndexDim, value) -> value -- IndexDim -> value -> value
 
-sizeFromValue :: DimRel val -> (DefOneDim val -> Size val)
-sizeFromValue dimRel defOneDim = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
+sizeFromDimRel :: DimRel val -> (DefOneDim val -> Size val)
+sizeFromDimRel dimRel defOneDim = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
 	(x,y)
 
 renderToBlock :: Show src => RenderToBlockParams src char -> RenderMethod

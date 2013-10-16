@@ -1,7 +1,7 @@
 module SGRender.BlockCombinators(
 	-- * render combinators (combine a list of RenderMethods)
 	renderListHori,renderListVert,
-	renderListHoriWithSep,
+	renderListHoriWithSep, renderListVertWithSep,
 	-- ** with fix height
 	renderToBlockFix,
 	renderListHoriFix, renderListVertFix,
@@ -12,7 +12,8 @@ module SGRender.BlockCombinators(
 	-- * ready to use renderMethods
 	renderTable,
 	renderTree,
-	
+	-- * render with default size
+	renderSqueezed, renderMinSize,
 ) where
 import SGRender.Render
 import SGRender.Block
@@ -92,6 +93,25 @@ renderListHoriWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\
 						0 -> 0
 						_ -> sepWidth
 		interspersedSrc listSrc = intersperse (Left ()) $ map Right listSrc
+renderListVertWithSep :: Show src => FillFunction (Size Int) (Block Char)  -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+renderListVertWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\size src -> renderF renderInterspersed' size (interspersedSrc src)) (\src -> srcInfo renderInterspersed' (interspersedSrc src))
+	where
+		renderInterspersed' = renderListVert (divWithSep sepWidth divBlocks) $ renderInterspersed renderSep listRenderMeth
+			where
+				renderSep = renderToConstRepr fillFSep dimRelSep
+				dimRelSep src defOneDim = case fst defOneDim of
+					0 -> case snd defOneDim of
+						0 -> 0
+						_ -> sepWidth
+
+					1 -> 0
+					{-
+					0 -> 0
+					1 -> case snd defOneDim of
+						0 -> 0
+						_ -> sepWidth
+				-}
+		interspersedSrc listSrc = intersperse (Left ()) $ map Right listSrc
 	
 divWithSep sepWidth divF (dim, dist) listDimRel = divDistEqual dist $
 	intersperse sepWidth $
@@ -122,11 +142,17 @@ renderListVertFix div listRenderMeth = renderMeth (renderF renderVert) calcSize
 	where
 		renderVert= renderListVert div $ map renderMDimRelFromSize listRenderMeth
 		calcSize src = ((srcInfo renderVert) src (y,1), (srcInfo renderVert) src (x,1))
+
 renderListHoriFixWithSep :: Show src => FillFunction (Size Int) (Block Char) -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (Size Int)] -> RenderMethod [src] (Block Char) (Size Int) (Size Int)
 renderListHoriFixWithSep sepFillF sepWidth div listRenderMeth = renderMeth (renderF renderHori) calcSize
 	where
 		renderHori = renderListHoriWithSep sepFillF sepWidth div $ map renderMDimRelFromSize listRenderMeth
 		calcSize src = ((srcInfo renderHori) src (y,1), (srcInfo renderHori) src (x,1))
+renderListVertFixWithSep :: Show src => FillFunction (Size Int) (Block Char) -> Height -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (Size Int)] -> RenderMethod [src] (Block Char) (Size Int) (Size Int)
+renderListVertFixWithSep sepFillF sepHeight div listRenderMeth = renderMeth (renderF renderVert) calcSize
+	where
+		renderVert = renderListVertWithSep sepFillF sepHeight div $ map renderMDimRelFromSize listRenderMeth
+		calcSize src = ((srcInfo renderVert) src (y,1), (srcInfo renderVert) src (x,1))
 
 
 renderEither :: (RenderMethod srcLeft repr param info) -> (RenderMethod srcRight repr param info) -> RenderMethod (Either srcLeft srcRight) repr param info
@@ -170,6 +196,8 @@ horiWithSep = renderListHoriWithSep (filledBlock "|") 1 divBlocks (repeat $ rend
 
 vert :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 vert = renderListVert divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
+vertWithSep :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+vertWithSep = renderListVertWithSep (filledBlock "-") 1 divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
 
 test :: Show src => RenderMethod src (Block Char) (Size Int) (DimRel Int) -> src -> IO ()
 test renderMeth src = do
@@ -195,6 +223,17 @@ renderTree = renderMeth newRenderF newSrcInfo
 		newRenderF size src = (renderF $ renderHeadAndSubTrees) size $
 			(value src, children src)
 		newSrcInfo tree = (srcInfo renderHeadAndSubTrees) (value tree, children tree)
+
+renderSqueezed :: IndexDim -> RenderMethod src repr (Size Int) (DimRel Int) -> src -> repr
+renderSqueezed minDim renderMeth src = (renderF renderMeth) size src
+	where
+		size :: Size Int
+		size = sizeFromDimRel (srcInfo renderMeth src) (1-minDim, srcInfo renderMeth src (minDim,1))
+
+type IndexDim = Int
+
+renderMinSize :: (Show src) => RenderMethod src repr srcInfo srcInfo -> src -> repr
+renderMinSize renderMeth src = (renderF renderMeth) (srcInfo renderMeth src) src
 
 renderHeadAndSubTrees :: Show src => RenderMethod (src,[Tree src]) (Block Char) (Size Int) (Size Int)
 renderHeadAndSubTrees = combine2
