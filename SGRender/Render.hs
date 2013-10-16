@@ -1,9 +1,13 @@
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
 module SGRender.Render(
-	-- * RenderMethods
+	-- * important types
 	ReprComb,RenderFunction,RenderMethod(..),
+	--renderF,srcInfo,
 	FillFunction,
+	-- * pseudo constructors
 	renderMeth,
+	-- * basic RenderMethods
+	renderToConstRepr,
 	-- * combinator
 	combine, combine2,
 	-- * type class for representations
@@ -26,6 +30,7 @@ data RenderMethod src repr params srcInfo = RenderMeth {
 	renderF :: RenderFunction src repr params,
 	srcInfo :: src -> srcInfo
 }
+-- | create a render method
 renderMeth newRenderF newSrcInfo = RenderMeth {
 	srcInfo = newSrcInfo,
 	renderF = newRenderF
@@ -33,6 +38,12 @@ renderMeth newRenderF newSrcInfo = RenderMeth {
 
 type Binary a = a -> a -> a
 type FillFunction param repr = param -> repr
+
+-- | ignores the source, and just applies reprFromParam
+renderToConstRepr :: (param -> repr) -> (src -> info) -> RenderMethod src repr param info
+renderToConstRepr reprFromParam infoFromSrc = renderMeth renderF infoFromSrc
+	where
+		renderF param _ = reprFromParam param
 
 --type CombineSrcInfo = [srcInfo] -> 
 

@@ -15,6 +15,6 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  exposed-modules:     SGRender.Block, SGRender.Render
+  exposed-modules:     SGRender.Block, SGRender.Render, SGRender.BlockCombinators
   -- other-modules:       
   build-depends:       sgCard >= 1.0.0.0, sgData >= 1.0.0.0, base ==4.5.*

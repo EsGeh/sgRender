@@ -1,3 +1,19 @@
+module SGRender.BlockCombinators(
+	-- * render combinators (combine a list of RenderMethods)
+	renderListHori,renderListVert,
+	renderListHoriWithSep,
+	-- ** with fix height
+	renderToBlockFix,
+	renderListHoriFix, renderListVertFix,
+	renderListHoriFixWithSep,
+	-- * divFunctions
+	DivBlocks, 
+	divBlocks,
+	-- * ready to use renderMethods
+	renderTable,
+	renderTree,
+	
+) where
 import SGRender.Render
 import SGRender.Block
 import SGData hiding(Width,Height)
@@ -15,13 +31,72 @@ type DivBlocks dist = DefOneDim dist -> [DimRel dist] -> [dist]
 
 divB :: Num dist => DivBlocks dist
 divB defOneDim listDimRel = listDimRel <*> [(1-fst defOneDim, 1)]
-divForce :: DivBlocks Int --Num dist => DivBlocks dist
-divForce defOneDim listDimRel = divEqual (snd defOneDim) $ divB defOneDim listDimRel
+divBlocks :: DivBlocks Int --Num dist => DivBlocks dist
+divBlocks defOneDim listDimRel = divDistEqual (snd defOneDim) $ divB defOneDim listDimRel
 
 {-
 instance Show (DimRel t) where
 	show dimRel = map dimRel $ zip 
 -}
+
+renderListHori :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+renderListHori divBlocks listRenderMeth = combine
+	(mmappend dimX)
+	(\size -> filledBlock " " size)
+	calcSize
+	calcInfo
+	listRenderMeth
+	where
+		calcSize :: Size Int -> [DimRel Int] -> [Size Int]
+		calcSize size listDimRel = zip
+			(divBlocks (x, vecX size) listDimRel)
+			(repeat $ vecY size)
+		calcInfo listDimRel defOneDim = case fst defOneDim of
+			0 -> case listDimRel of
+				[] -> 0
+				_ -> maximum $ getZipList $ 
+					ZipList listDimRel <*> ZipList (zip (repeat x) (divBlocks defOneDim $ listDimRel))
+			--maximum $ div defOneDim $ (\x -> trace (show $ listDimRel <*> [(0,snd defOneDim)]) x) $ listDimRel
+				--height
+			1 -> sum $ listDimRel <*> [defOneDim]
+renderListVert :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+renderListVert divBlocks listRenderMeth = combine
+	(mmappend dimY)
+	(\size -> filledBlock " " size)
+	calcSize
+	calcInfo
+	listRenderMeth
+	where
+		calcSize :: Size Int -> [DimRel Int] -> [Size Int]
+		calcSize size listDimRel = zip
+			(repeat $ vecX size)
+			(divBlocks (y, vecY size) listDimRel)
+		calcInfo listDimRel defOneDim = case fst defOneDim of
+			0 -> sum $ listDimRel <*> [defOneDim]
+			1 -> case listDimRel of
+				[] -> 0
+				_ -> maximum $ getZipList $ 
+					ZipList listDimRel <*> ZipList (zip (repeat x) (divBlocks defOneDim $ listDimRel))
+				--maximum $ div defOneDim listDimRel
+				--height
+
+renderListHoriWithSep :: Show src => FillFunction (Size Int) (Block Char)  -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+renderListHoriWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\size src -> renderF renderInterspersed' size (interspersedSrc src)) (\src -> srcInfo renderInterspersed' (interspersedSrc src))
+	where
+		renderInterspersed' = renderListHori (divWithSep sepWidth divBlocks) $ renderInterspersed renderSep listRenderMeth
+			where
+				renderSep = renderToConstRepr fillFSep dimRelSep
+				dimRelSep src defOneDim = case fst defOneDim of
+					0 -> 0
+					1 -> case snd defOneDim of
+						0 -> 0
+						_ -> sepWidth
+		interspersedSrc listSrc = intersperse (Left ()) $ map Right listSrc
+	
+divWithSep sepWidth divF (dim, dist) listDimRel = divDistEqual dist $
+	intersperse sepWidth $
+		divF (dim, dist - ((length listDimRel - 1) `div` 2)*sepWidth) $ 
+				(unintersperse listDimRel)
 
 renderToBlockFix :: Show src => Height -> RenderToBlockParams src char -> RenderMethod src (Block char) (Size Int) (Size Int)
 renderToBlockFix height params = renderMeth (renderF $ renderM) calcSrcInfo
@@ -53,26 +128,6 @@ renderListHoriFixWithSep sepFillF sepWidth div listRenderMeth = renderMeth (rend
 		renderHori = renderListHoriWithSep sepFillF sepWidth div $ map renderMDimRelFromSize listRenderMeth
 		calcSize src = ((srcInfo renderHori) src (y,1), (srcInfo renderHori) src (x,1))
 
-renderListHori :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-renderListHori divForce listRenderMeth = combine
-	(mmappend dimX)
-	(\size -> filledBlock " " size)
-	calcSize
-	calcInfo
-	listRenderMeth
-	where
-		calcSize :: Size Int -> [DimRel Int] -> [Size Int]
-		calcSize size listDimRel = zip
-			(divForce (x, vecX size) listDimRel)
-			(repeat $ vecY size)
-		calcInfo listDimRel defOneDim = case fst defOneDim of
-			0 -> case listDimRel of
-				[] -> 0
-				_ -> maximum $ getZipList $ 
-					ZipList listDimRel <*> ZipList (zip (repeat x) (divForce defOneDim $ listDimRel))
-			--maximum $ div defOneDim $ (\x -> trace (show $ listDimRel <*> [(0,snd defOneDim)]) x) $ listDimRel
-				--height
-			1 -> sum $ listDimRel <*> [defOneDim]
 
 renderEither :: (RenderMethod srcLeft repr param info) -> (RenderMethod srcRight repr param info) -> RenderMethod (Either srcLeft srcRight) repr param info
 renderEither renderLeft renderRight = renderMeth newRenderF newSrcInfo
@@ -99,23 +154,6 @@ renderInterspersed renderSep listRenderMeth = intersperse renderMaybeSep listRen
 		renderError errorMsg = renderMeth (\param src -> error errorMsg) (\src -> error errorMsg)
 
 
-renderListHoriWithSep :: Show src => FillFunction (Size Int) (Block Char)  -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-renderListHoriWithSep fillFSep sepWidth divForce listRenderMeth = renderMeth (\size src -> renderF renderInterspersed' size (interspersedSrc src)) (\src -> srcInfo renderInterspersed' (interspersedSrc src))
-	where
-		renderInterspersed' = renderListHori (divWithSep sepWidth divForce) $ renderInterspersed renderSep listRenderMeth
-			where
-				renderSep = renderToConstRepr fillFSep dimRelSep
-				dimRelSep src defOneDim = case fst defOneDim of
-					0 -> 0
-					1 -> case snd defOneDim of
-						0 -> 0
-						_ -> sepWidth
-		interspersedSrc listSrc = intersperse (Left ()) $ map Right listSrc
-	
-divWithSep sepWidth divF (dim, dist) listDimRel = divEqual dist $
-	intersperse sepWidth $
-		divF (dim, dist - ((length listDimRel - 1) `div` 2)*sepWidth) $ 
-				(unintersperse listDimRel)
 unintersperse list = case list of
 	[] -> []
 	[x] -> [x]
@@ -124,34 +162,14 @@ unintersperse list = case list of
 --debug info x = x
 debug info x = trace (info ++ show x) x
 
-renderListVert :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-renderListVert divForce listRenderMeth = combine
-	(mmappend dimY)
-	(\size -> filledBlock " " size)
-	calcSize
-	calcInfo
-	listRenderMeth
-	where
-		calcSize :: Size Int -> [DimRel Int] -> [Size Int]
-		calcSize size listDimRel = zip
-			(repeat $ vecX size)
-			(divForce (y, vecY size) listDimRel)
-		calcInfo listDimRel defOneDim = case fst defOneDim of
-			0 -> sum $ listDimRel <*> [defOneDim]
-			1 -> case listDimRel of
-				[] -> 0
-				_ -> maximum $ getZipList $ 
-					ZipList listDimRel <*> ZipList (zip (repeat x) (divForce defOneDim $ listDimRel))
-				--maximum $ div defOneDim listDimRel
-				--height
 
 hori :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-hori = renderListHori divForce (repeat $ renderToBlock renderToBlockParamsStd)
+hori = renderListHori divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
 horiWithSep :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-horiWithSep = renderListHoriWithSep (filledBlock "|") 1 divForce (repeat $ renderToBlock renderToBlockParamsStd)
+horiWithSep = renderListHoriWithSep (filledBlock "|") 1 divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
 
 vert :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-vert = renderListVert divForce (repeat $ renderToBlock renderToBlockParamsStd)
+vert = renderListVert divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
 
 test :: Show src => RenderMethod src (Block Char) (Size Int) (DimRel Int) -> src -> IO ()
 test renderMeth src = do
@@ -163,9 +181,9 @@ test renderMeth src = do
 	putStrLn $ show $ (renderF renderMeth) (20,10) src
 
 
-table :: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
-table = renderListHori divForce $
-	repeat $ renderListVert divForce $
+renderTable:: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
+renderTable = renderListHori divBlocks $
+	repeat $ renderListVert divBlocks $
 		repeat $ renderToBlock renderToBlockParamsStd
 
 
@@ -180,7 +198,7 @@ renderTree = renderMeth newRenderF newSrcInfo
 
 renderHeadAndSubTrees :: Show src => RenderMethod (src,[Tree src]) (Block Char) (Size Int) (Size Int)
 renderHeadAndSubTrees = combine2
-	vertBlockComb
+	(mmappend dimY)
 	calcSubParams
 	combineSrcInfo
 	(renderToBlock renderToBlockParamsStd)
@@ -197,14 +215,14 @@ renderHeadAndSubTrees = combine2
 			(width, heightChildren))
 			where
 				width = vecX wholeSize
-				heightHead : heightChildren : _ = divDontDeform (vecY wholeSize)
+				heightHead : heightChildren : _ = divDistCut (vecY wholeSize)
 					[1, vecY sizeD]
 				--((widthAllInAll,1),widthAllInAll) 
 
 renderSubTrees :: Show src => RenderMethod [Tree src] (Block Char) (Size Int) (Size Int)
 renderSubTrees = renderMeth (renderF renderHori) (srcInfo renderHori)
 	where
-		renderHori = renderListHoriFixWithSep (filledBlock "|") 1 divForce (repeat renderTree)
+		renderHori = renderListHoriFixWithSep (filledBlock "|") 1 divBlocks (repeat renderTree)
 
 {-horizontal (\size -> filledBlock " " size)
 	calcSubParams
@@ -216,7 +234,7 @@ renderSubTrees = renderMeth (renderF renderHori) (srcInfo renderHori)
 	(repeat renderTree)
 	where
 		calcSubParams size listSize = zip
-			(divEqual (vecX size) (map vecX listSize))
+			(divDistEqual (vecX size) (map vecX listSize))
 			(repeat $ vecY size)
 -}
 
@@ -237,7 +255,7 @@ renderListVert divBlocks listRenderMeth = combine
 			1 ->  maximum $ listDimRel <*> [(1,height)]
 
 testGenVert :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-testGenVert = renderListVert 1 divEqual (repeat $ renderToBlock renderToBlockParamsStd)
+testGenVert = renderListVert 1 divDistEqual (repeat $ renderToBlock renderToBlockParamsStd)
 
 testGen :: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
 testGen = renderListHori divTest $

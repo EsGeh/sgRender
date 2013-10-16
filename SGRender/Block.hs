@@ -1,19 +1,19 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
-module SGRender.Block {-(
+module SGRender.Block (
 	-- * basic types
 	Block(),
-	filledBlock,
+	--horiBlockComb, vertBlockComb,
 	-- * basic renderMethods
 	renderToBlock, renderToBlockParamsStd, RenderToBlockParams(..),
-	renderToConstRepr,
-	-- * combinators
-	horizontal, vertical,
-	-- * rendering from lists
-	renderListHorizontalFromWidth,
-	renderListVerticalFromWidth, renderListVerticalFromHeight,
-	-- * rendering a tree
-	renderTree,
-)-} where 
+	-- * FillFunctions
+	filledBlock,
+	-- * divDist Functions
+	divDistEqual, divDistCut,
+	-- * little type aliases
+	Size,
+	Width, Height,
+	DimRel, DefOneDim,
+) where 
 
 import SGRender.Render
 
@@ -98,11 +98,6 @@ renderToBlock params = renderToBlock'
 		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ show src) / fromIntegral value
 
 
--- | ignores the source, and just applies reprFromParam
-renderToConstRepr :: (param -> repr) -> (src -> info) -> RenderMethod src repr param info
-renderToConstRepr reprFromParam infoFromSrc = renderMeth renderF infoFromSrc
-	where
-		renderF param _ = reprFromParam param
 
 
 filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $ repeat $
@@ -112,16 +107,16 @@ zeroBlock = Block $ m (0,0) (const 'x')
 
 type DivDist a = a -> [a] -> [a]
 
-divDontDeform :: Int -> [Int] -> [Int]
-divDontDeform maxDist listDist = case listDist of
+divDistCut :: Int -> [Int] -> [Int]
+divDistCut maxDist listDist = case listDist of
 	[] -> []
 	x:[] -> [maxDist]
 	(x:xs) -> if x > maxDist
 		then maxDist:( take (length xs) $ repeat 0)
-		else x : (divDontDeform (maxDist - x) xs)
+		else x : (divDistCut (maxDist - x) xs)
 
-divEqual :: Int -> [Int] -> [Int]
-divEqual maxWidth listWidth = zipWith (+) (divDiff diff (length listWidth)) listWidth
+divDistEqual :: Int -> [Int] -> [Int]
+divDistEqual maxWidth listWidth = zipWith (+) (divDiff diff (length listWidth)) listWidth
 	where
 		diff = maxWidth - sum listWidth
 
@@ -133,12 +128,10 @@ divDiff diff count = case count of
 
 
 renderToBlock' :: (src -> srcInfo) -> (src -> [char]) -> [char] -> RenderMethod src (Block char) (Size Int) srcInfo 
-renderToBlock' infoFromSrc showF fillTile = RenderMeth {
-	renderF = newRenderF,
-	srcInfo = infoFromSrc
-} where
-	newRenderF size src = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ showF src ++ cycle fillTile where
-		area = vecX size * vecY size
+renderToBlock' infoFromSrc showF fillTile = renderMeth newRenderF infoFromSrc
+	where
+		newRenderF size src = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ showF src ++ cycle fillTile where
+			area = vecX size * vecY size
 
 type Width = Int
 type Height = Int
