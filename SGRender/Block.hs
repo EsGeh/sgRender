@@ -92,8 +92,8 @@ renderToBlock :: Show src => RenderToBlockParams src char -> RenderMethod
 	(Size Int) -- params
 	(DimRel Int) -- srcInfo
 renderToBlock params = renderToBlock'
-	srcToDimRel
 	(showF params)
+	srcToDimRel
 	(fillTile params)
 	where
 		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ show src) / fromIntegral value
@@ -103,6 +103,7 @@ renderToBlock params = renderToBlock'
 
 filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $ repeat $
 	take (vecX size) $ cycle fillTile
+
 zeroBlock = Block $ m (0,0) (const 'x')
 
 
@@ -128,8 +129,8 @@ divDiff diff count = case count of
 		(ceiling oneElem) : divDiff (diff - ceiling oneElem) (count-1)
 
 
-renderToBlock' :: (src -> srcInfo) -> (src -> [char]) -> [char] -> RenderMethod src (Block char) (Size Int) srcInfo 
-renderToBlock' infoFromSrc showF fillTile = renderMeth newRenderF infoFromSrc
+renderToBlock' :: (src -> [char]) -> (src -> srcInfo) -> [char] -> RenderMethod src (Block char) (Size Int) srcInfo 
+renderToBlock' showF infoFromSrc fillTile = renderMeth newRenderF infoFromSrc
 	where
 		newRenderF size src = Block $ fromJust $ mFromListRow $ chop (vecX size) $ take area $ showF src ++ cycle fillTile where
 			area = vecX size * vecY size

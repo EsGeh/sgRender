@@ -48,7 +48,7 @@ renderToConstRepr reprFromParam infoFromSrc = renderMeth renderF infoFromSrc
 --type CombineSrcInfo = [srcInfo] -> 
 
 {-
-	1. listConstr
+	. listConstr
 -}
 
 combine :: Binary repr -> FillFunction param repr -> (param -> [srcInfoSub] -> [paramSubMeth]) -> ([srcInfoSub] -> srcInfo) 
