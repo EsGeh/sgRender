@@ -9,6 +9,8 @@ module SGRender.BlockCombinators(
 	-- * divFunctions
 	DivBlocks, 
 	divBlocks,
+	-- * divDist Functions
+	divDistEqual, divDistCut,
 	-- * ready to use renderMethods
 	renderTable,
 	renderTree,
@@ -23,16 +25,70 @@ import Control.Applicative
 import Data.List
 import Debug.Trace
 
+
 x = 0
 y = 1
 
 type DivBlocks dist = DefOneDim dist -> [DimRel dist] -> [dist] 
 
---orthoDim dim = 1- dim
+-- |@
+-- f :: DivDist a
+-- f maxDistance listDist =
+-- 	try to make the following true:
+-- 	sum listDist == maxDistance
+-- @
+type DivDist a = a -> [a] -> [a]
 
-divB :: Num dist => DivBlocks dist
+divDistCut :: Int -> [Int] -> [Int]
+divDistCut maxDist listDist = case listDist of
+	[] -> []
+	x:[] -> [maxDist]
+	(x:xs) -> if x > maxDist
+		then maxDist:( take (length xs) $ repeat 0)
+		else x : (divDistCut (maxDist - x) xs)
+
+{- |@
+if maxWidth >= sum listWidth:
+	return listWidth
+else
+	divide (maxWidth-sum listWidth) equally over listWidth
+	return this division
+@
+
+example:
+
+@
+divDistEqual 5 [1,1,1] = [2,2,1]
+@
+-}
+divDistEqual :: Int -> [Int] -> [Int]
+divDistEqual maxWidth listWidth = zipWith (+) (divDiff diff (length listWidth)) listWidth
+	where
+		diff = maxWidth - sum listWidth
+
+-- |divide 'diff' into 'count' pieces 'res', so that t sum res == 'diff'
+-- example: divDiff 5 3 = [2, 2, 1]
+divDiff :: Int -> Int -> [Int]
+divDiff diff count = case count of
+	0 -> case diff of {0 -> []; _ -> error "divError" }
+	_ -> let oneElem = fromIntegral diff / fromIntegral count in
+		(ceiling oneElem) : divDiff (diff - ceiling oneElem) (count-1)
+
+{-|example:
+@
+divB (x, ?) [dimRel1, dimRel2, ...] = [dimRel1 (y,1), dimRel2 (y,1), ...]
+@
+-}
+divB :: Num dist => DivBlocks dist -- DefOneDim Int -> [DimRel Int] -> [Int]
 divB defOneDim listDimRel = listDimRel <*> [(1-fst defOneDim, 1)]
-divBlocks :: DivBlocks Int --Num dist => DivBlocks dist
+
+{-|example:
+
+@
+divBlocks (x,5) [dimRel1, dimRel2, ...] = divDistEqual 5 [dimRel1 (y,1), dimRel2 (y,1), ...]
+@
+-}
+divBlocks :: DivBlocks Int -- DefOneDim Int -> [DimRel Int] -> [Int]
 divBlocks defOneDim listDimRel = divDistEqual (snd defOneDim) $ divB defOneDim listDimRel
 
 {-
@@ -230,7 +286,7 @@ renderSqueezed minDim renderMeth src = (renderF renderMeth) size src
 		size :: Size Int
 		size = sizeFromDimRel (srcInfo renderMeth src) (1-minDim, srcInfo renderMeth src (minDim,1))
 
-type IndexDim = Int
+--type IndexDim = Int
 
 renderMinSize :: (Show src) => RenderMethod src repr srcInfo srcInfo -> src -> repr
 renderMinSize renderMeth src = (renderF renderMeth) (srcInfo renderMeth src) src

@@ -7,12 +7,11 @@ module SGRender.Block (
 	renderToBlock, renderToBlockParamsStd, RenderToBlockParams(..),
 	-- * FillFunctions
 	filledBlock,
-	-- * divDist Functions
-	divDistEqual, divDistCut,
 	-- * little type aliases
 	Size,
 	Width, Height,
 	DimRel, DefOneDim,
+	IndexDim,
 	sizeFromDimRel,
 ) where 
 
@@ -71,6 +70,15 @@ data RenderToBlockParams src char = RenderToBlockParams {
 	fillTile :: [char],
 	parenthesis :: [char]
 }
+{- |
+@
+renderToBlockParamsStd = RenderToBlockParams {
+	showF = show,
+	fillTile = \" \",
+	parenthesis = \"..\"
+}
+@
+-}
 renderToBlockParamsStd :: (Show a) => RenderToBlockParams a Char
 renderToBlockParamsStd = RenderToBlockParams {
 	showF = show,
@@ -78,27 +86,54 @@ renderToBlockParamsStd = RenderToBlockParams {
 	parenthesis = ".."
 }
 
+-- | 0 for x-Axis, 1 for y-Axis, ...
 type IndexDim = Int
 type DefOneDim value = (IndexDim, value)
+-- | given one side of a rectangle, return the other
 type DimRel value = (IndexDim, value) -> value -- IndexDim -> value -> value
 
+{- |sizeFromDimRel :: (DimRel Int) -> (IndexDim, Int) -> Size Int
+
+given one side of a rectangle, and a 'DimRel' Int, the rectangle is defined
+-}
 sizeFromDimRel :: DimRel val -> (DefOneDim val -> Size val)
 sizeFromDimRel dimRel defOneDim = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
 	(x,y)
 
+{- | Pseudo-Code:
+
+@
+given 'RenderToBlockParams'{
+	showF :: src -> [char]
+	fillTile :: [char]
+	parenthesis :: [char]
+}
+returns a 'RenderMethod' {
+	renderF :: Size Int -> src -> Block char
+	srcInfo :: src -> srcInfo (= src -> DimRel Int)
+		= src -> DefOneDim -> Int
+}
+where
+	renderF is defined as follows (Pseudo-Code):
+		1. longString = showF src ++ fillTile :: [char]
+		2. lines = chop longString into lines :: [[char]]
+		3. return a "Block" of lines
+	srcInfo src (indexDim, distance) = (Pseudo-Code):
+		minimumArea = length $ showF src
+		minimumArea / distance
+@
+-}
 renderToBlock :: RenderToBlockParams src char -> RenderMethod
 	src
 	(Block char)
 	(Size Int) -- params
 	(DimRel Int) -- srcInfo
 renderToBlock params = renderToBlock'
-	(showF params)
-	srcToDimRel
-	(fillTile params)
+	(showF params)		--showF
+	srcToDimRel		--infoFromSrc:: src -> (IndexDim, Int) -> Int
+	(fillTile params)	--fillTile
 	where
 		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ (showF params) src) / fromIntegral value
-
-
 
 
 filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $ repeat $
@@ -107,28 +142,19 @@ filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $
 zeroBlock = Block $ m (0,0) (const 'x')
 
 
-type DivDist a = a -> [a] -> [a]
 
-divDistCut :: Int -> [Int] -> [Int]
-divDistCut maxDist listDist = case listDist of
-	[] -> []
-	x:[] -> [maxDist]
-	(x:xs) -> if x > maxDist
-		then maxDist:( take (length xs) $ repeat 0)
-		else x : (divDistCut (maxDist - x) xs)
-
-divDistEqual :: Int -> [Int] -> [Int]
-divDistEqual maxWidth listWidth = zipWith (+) (divDiff diff (length listWidth)) listWidth
-	where
-		diff = maxWidth - sum listWidth
-
-divDiff :: Int -> Int -> [Int]
-divDiff diff count = case count of
-	0 -> case diff of {0 -> []; _ -> error "divError" }
-	_ -> let oneElem = fromIntegral diff / fromIntegral count in
-		(ceiling oneElem) : divDiff (diff - ceiling oneElem) (count-1)
-
-
+{- | given a
+ - 	showF :: src -> [char]
+ - 	infoFromSrc :: src -> srcInfo
+ -	fillTile :: [char]
+ - returns a 'RenderMethod'
+ - 	renderF :: Size Int -> src -> Block char
+ - 	srcInfo :: src -> srcInfo
+ - where renderF is defined as follows (Pseudo-Code):
+ - 	1. longString = showF src ++ fillTile :: [char]
+ - 	2. lines = chop longString into lines :: [[char]]
+ - 	3. return a "Block" of lines
+-}
 renderToBlock' :: (src -> [char]) -> (src -> srcInfo) -> [char] -> RenderMethod src (Block char) (Size Int) srcInfo 
 renderToBlock' showF infoFromSrc fillTile = renderMeth newRenderF infoFromSrc
 	where

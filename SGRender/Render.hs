@@ -1,4 +1,11 @@
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
+{-| this module defines what the other modules of this library are based on
+
+ * basic data types
+
+ * pattern how to combine "RenderMethods"
+
+-}
 module SGRender.Render(
 	-- * important types
 	ReprComb,RenderFunction,RenderMethod(..),
@@ -51,6 +58,23 @@ renderToConstRepr reprFromParam infoFromSrc = renderMeth renderF infoFromSrc
 	. listConstr
 -}
 
+{-| combine a ["RenderMethod"] to one "RenderMethod"
+
+The new Rendermethod behaves as follows (simplified!):
+
+Pseudo-Code:
+	
+@
+given a [src]
+	if listSrc is empty:
+		use fillEmpty param
+	else
+		map ["RenderMethods"] to the [src]
+@
+
+more detailed explanation to come soon ...
+
+ -}
 combine :: Binary repr -> FillFunction param repr -> (param -> [srcInfoSub] -> [paramSubMeth]) -> ([srcInfoSub] -> srcInfo) 
 	-> [RenderMethod src repr paramSubMeth srcInfoSub]
 	-> RenderMethod [src] repr param srcInfo
@@ -73,13 +97,12 @@ combine2 concRepr paramsFromListSrcInfo concInfo rndrMethL rndrMethR = RenderMet
 	srcInfo = newSrcInfo,
 	renderF = newRenderF
 } where
-	newSrcInfo sources = (uncurry concInfo) (sourcesInfo sources) --(foldl1 concInfo $ listSrcInfo listSrc)
+	newSrcInfo sources = (uncurry concInfo) (sourcesInfo sources)
 	--newRenderF :: 
 	newRenderF param sources@(srcL,srcR) = 
 		concRepr 
 			((renderF rndrMethL) (fst $ paramSub param sources) srcL)
 			((renderF rndrMethR) (snd $ paramSub param sources) srcR)
-		--foldl1 concRepr $ zipWith3 (\params f s -> (renderF f) params s) (listParams param listSrc) rndrMethList listSrc
 	paramSub param sources = paramsFromListSrcInfo param $ sourcesInfo sources
 	sourcesInfo (srcL,srcR) = ((srcInfo rndrMethL) srcL, (srcInfo rndrMethR) srcR) 
 
