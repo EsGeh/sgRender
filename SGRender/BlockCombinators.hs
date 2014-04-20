@@ -98,8 +98,8 @@ instance Show (DimRel t) where
 
 renderListHori :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 renderListHori divBlocks listRenderMeth = combine
-	(mmappend dimX)
-	(\size -> filledBlock " " size)
+	(mmappend dimX)			-- concRepr
+	(\size -> filledBlock " " size) -- fillFunction
 	calcSize
 	calcInfo
 	listRenderMeth
@@ -108,6 +108,7 @@ renderListHori divBlocks listRenderMeth = combine
 		calcSize size listDimRel = zip
 			(divBlocks (x, vecX size) listDimRel)
 			(repeat $ vecY size)
+		-- calcInfo :: [DimRel Int] -> DimRel Int
 		calcInfo listDimRel defOneDim = case fst defOneDim of
 			0 -> case listDimRel of
 				[] -> 0

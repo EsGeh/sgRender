@@ -1,4 +1,17 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-|This module defines some data type to represent text that fits into a rectangle ('Block') and basic RenderMethods to render from some src type into it.
+
+The general idea is to specialize a RenderMethod src repr params srcInfo like so:
+
+	- repr = 'Block' char
+
+	- params = 'Size' Int
+
+	- srcInfo = 'DimRel' Int
+
+'renderToBlock' implements a basic 'RenderMethod' of that kind.
+
+-}
 module SGRender.Block (
 	-- * basic types
 	Block(),
@@ -7,11 +20,13 @@ module SGRender.Block (
 	renderToBlock, renderToBlockParamsStd, RenderToBlockParams(..),
 	-- * FillFunctions
 	filledBlock,
-	-- * little type aliases
+	-- * working with sizes
+	-- ** little type aliases
 	Size,
 	Width, Height,
 	DimRel, DefOneDim,
 	IndexDim,
+	-- ** functions to work with sizes
 	sizeFromDimRel,
 ) where 
 
@@ -115,7 +130,7 @@ returns a 'RenderMethod' {
 }
 where
 	renderF is defined as follows (Pseudo-Code):
-		1. longString = showF src ++ fillTile :: [char]
+		1. longString = showF src ++ cycle fillTile :: [char]
 		2. lines = chop longString into lines :: [[char]]
 		3. return a "Block" of lines
 	srcInfo src (indexDim, distance) = (Pseudo-Code):
@@ -151,7 +166,7 @@ zeroBlock = Block $ m (0,0) (const 'x')
  - 	renderF :: Size Int -> src -> Block char
  - 	srcInfo :: src -> srcInfo
  - where renderF is defined as follows (Pseudo-Code):
- - 	1. longString = showF src ++ fillTile :: [char]
+ - 	1. longString = showF src ++ cycle fillTile :: [char]
  - 	2. lines = chop longString into lines :: [[char]]
  - 	3. return a "Block" of lines
 -}

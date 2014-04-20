@@ -33,9 +33,12 @@ type ReprComb repr = repr -> repr -> repr
 -- |calculate a representation for source
 type RenderFunction src dst params = params -> src -> dst
 
+{-|
+<<diagrams/renderMethod.svg>>
+-}
 data RenderMethod src repr params srcInfo = RenderMeth {
-	renderF :: RenderFunction src repr params,
-	srcInfo :: src -> srcInfo
+	renderF :: RenderFunction src repr params, -- ^a way to calculate a representation of a source
+	srcInfo :: src -> srcInfo -- ^ usually returns how much space the repr will need
 }
 -- | create a render method
 renderMeth newRenderF newSrcInfo = RenderMeth {
@@ -89,6 +92,11 @@ combine concRepr fillEmpty listParamsFromListSrcInfo concInfo rndrMethList = Ren
 	listParams param listSrc = listParamsFromListSrcInfo param $ listSrcInfo listSrc
 	listSrcInfo listSrc = zipWith (\f s -> (srcInfo f) s) rndrMethList listSrc
 
+{-| combine two "RenderMethod"s one "RenderMethod"
+
+<<diagrams/combine2.svg>> 
+
+ -}
 combine2 :: (reprL -> reprR -> repr) -> (param -> (srcInfoSubL,srcInfoSubR) -> (paramSubMethL,paramSubMethR))-> (srcInfoSubL -> srcInfoSubR -> srcInfo) 
 	-> RenderMethod srcL reprL paramSubMethL srcInfoSubL 
 	-> RenderMethod srcR reprR paramSubMethR srcInfoSubR
