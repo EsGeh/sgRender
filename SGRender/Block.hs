@@ -133,6 +133,7 @@ where
 		1. longString = showF src ++ cycle fillTile :: [char]
 		2. lines = chop longString into lines :: [[char]]
 		3. return a "Block" of lines
+	-- PRECOND: distance >= 1, OTHERWISE: RETURNS NONSENSE!
 	srcInfo src (indexDim, distance) = (Pseudo-Code):
 		minimumArea = length $ showF src
 		minimumArea / distance
