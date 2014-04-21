@@ -29,6 +29,12 @@ import Debug.Trace
 x = 0
 y = 1
 
+{- |f :: DivBlocks t
+f (indexDim, dist) [dimRel1, dimRel2, ...] =
+	[dist1, dist2, ...]
+	where
+		dist1, dist2, ... describe a division of 'dist'
+-}
 type DivBlocks dist = DefOneDim dist -> [DimRel dist] -> [dist] 
 
 -- |@
@@ -75,22 +81,62 @@ divDiff diff count = case count of
 	_ -> let oneElem = fromIntegral diff / fromIntegral count in
 		(ceiling oneElem) : divDiff (diff - ceiling oneElem) (count-1)
 
+{-
 {-|example:
-@
-divB (x, ?) [dimRel1, dimRel2, ...] = [dimRel1 (y,1), dimRel2 (y,1), ...]
-@
 -}
 divB :: Num dist => DivBlocks dist -- DefOneDim Int -> [DimRel Int] -> [Int]
 divB defOneDim listDimRel = listDimRel <*> [(1-fst defOneDim, 1)]
+-}
+
+{- |give any DimRel the maximum distance in direction.
+
+example:
+
+@
+divB (x, ?) [dimRel1, dimRel2, ...] = [dimRel1 (y,1), dimRel2 (y,1), ...]
+	= [maxDist x dimRel1, maxDist x dimRel2, ...]
+@
+-}
+divToMaxDist :: Num dist => DivBlocks dist
+divToMaxDist defOneDim listDimRel = map (maxDist (fst defOneDim)) listDimRel
+
+
+{- |give any DimRel the minimum distance in direction x
+
+example:
+
+@
+divB (x, ?) [dimRel1, dimRel2, ...] = [minDist x dimRel1, minDist x dimRel2, ...]
+@
+-}
+divToMinDist :: Num dist => DivBlocks dist
+divToMinDist defOneDim listDimRel = map (minDist (fst defOneDim)) listDimRel
+
+-- |calculates the maximum distance in the 'indexDim' direction
+maxDist indexDim dimRel = dimRel ((1-indexDim), 1)
+
+-- |calculates the minimum distance in the 'indexDim' direction
+minDist indexDim dimRel = dimRel (1-indexDim, maxDist (1-indexDim) dimRel)
 
 {-|example:
 
 @
 divBlocks (x,5) [dimRel1, dimRel2, ...] = divDistEqual 5 [dimRel1 (y,1), dimRel2 (y,1), ...]
 @
+
+This means:
+
+@
+	divBlocks (x, dist) [dimRel1, dimRel2, ...] =
+		TODO
+@
+
 -}
 divBlocks :: DivBlocks Int -- DefOneDim Int -> [DimRel Int] -> [Int]
-divBlocks defOneDim listDimRel = divDistEqual (snd defOneDim) $ divB defOneDim listDimRel
+divBlocks defOneDim listDimRel =
+	let maxDistDivision = divToMaxDist defOneDim listDimRel
+	in
+		divDistEqual (snd defOneDim) $ maxDistDivision 
 
 {-
 instance Show (DimRel t) where
