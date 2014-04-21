@@ -39,6 +39,7 @@ type DivBlocks dist = DefOneDim dist -> [DimRel dist] -> [dist]
 -- @
 type DivDist a = a -> [a] -> [a]
 
+{-| still unsafe...! -}
 divDistCut :: Int -> [Int] -> [Int]
 divDistCut maxDist listDist = case listDist of
 	[] -> []
@@ -48,17 +49,16 @@ divDistCut maxDist listDist = case listDist of
 		else x : (divDistCut (maxDist - x) xs)
 
 {- |@
-if maxWidth >= sum listWidth:
-	return listWidth
-else
-	divide (maxWidth-sum listWidth) equally over listWidth
-	return this division
+try to divide (maxWidth-sum listWidth) equally over listWidth
+if an equal division is not possible:
+	give more weight to the leftmost elements
 @
 
 example:
 
 @
 divDistEqual 5 [1,1,1] = [2,2,1]
+divDistEqual 2 [1,1,1] = [0,1,1]
 @
 -}
 divDistEqual :: Int -> [Int] -> [Int]
@@ -68,6 +68,7 @@ divDistEqual maxWidth listWidth = zipWith (+) (divDiff diff (length listWidth)) 
 
 -- |divide 'diff' into 'count' pieces 'res', so that t sum res == 'diff'
 -- example: divDiff 5 3 = [2, 2, 1]
+-- example: divDiff -5 3 = [-2, -2, -1]
 divDiff :: Int -> Int -> [Int]
 divDiff diff count = case count of
 	0 -> case diff of {0 -> []; _ -> error "divError" }
@@ -281,6 +282,35 @@ renderTree = renderMeth newRenderF newSrcInfo
 			(value src, children src)
 		newSrcInfo tree = (srcInfo renderHeadAndSubTrees) (value tree, children tree)
 
+{- |@
+renderSqueezed dim renderMeth src
+@
+
+tries to minimize the space needed in the dimension 'dim'
+
+note for developers (Pseudo-Code):
+
+@
+renderSqueezed x renderMethod = 
+	distY = (srcInfo renderMethod :: DimRel) (x,1)
+	distX = (srcInfo renderMethod :: DimRel) (y,distY)
+@
+
+-- this means:
+
+for every
+
+@
+renderMethod :: 'RenderMethod' src (Block char) (DimRel Int) (Size Int)
+@
+
+the following must be true:
+
+@
+	(srcInfo renderMethod) (dim, ? <=1) == (srcInfo renderMethod) (dim, 1)
+@
+
+-}
 renderSqueezed :: IndexDim -> RenderMethod src repr (Size Int) (DimRel Int) -> src -> repr
 renderSqueezed minDim renderMeth src = (renderF renderMeth) size src
 	where
