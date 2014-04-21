@@ -115,8 +115,6 @@ renderListHori divBlocks listRenderMeth = combine
 				[] -> 0
 				_ -> maximum $ getZipList $ 
 					ZipList listDimRel <*> ZipList (zip (repeat x) (divBlocks defOneDim $ listDimRel))
-			--maximum $ div defOneDim $ (\x -> trace (show $ listDimRel <*> [(0,snd defOneDim)]) x) $ listDimRel
-				--height
 			1 -> sum $ listDimRel <*> [defOneDim]
 renderListVert :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 renderListVert divBlocks listRenderMeth = combine
@@ -135,7 +133,7 @@ renderListVert divBlocks listRenderMeth = combine
 			1 -> case listDimRel of
 				[] -> 0
 				_ -> maximum $ getZipList $ 
-					ZipList listDimRel <*> ZipList (zip (repeat x) (divBlocks defOneDim $ listDimRel))
+					ZipList listDimRel <*> ZipList (zip (repeat y) (divBlocks defOneDim $ listDimRel))
 				--maximum $ div defOneDim listDimRel
 				--height
 
@@ -231,7 +229,7 @@ renderInterspersed renderSep listRenderMeth = intersperse renderMaybeSep listRen
 	where
 		--renderMaybeSep :: RenderMethod (Either srcSep src) (Block Char) (Size Int) (DimRel Int)
 		renderMaybeSep = renderEither renderSep (renderError "not a seperator!")
-		---listRenderMaybe :: [RenderMethod (Either srcSep src) (Block Char) (Size Int) (DimRel Int)]
+		--listRenderMaybe :: [RenderMethod (Either srcSep src) (Block Char) (Size Int) (DimRel Int)]
 		listRenderMaybe = map toMaybe listRenderMeth
 			where
 				toMaybe renderMeth = renderEither (renderError "seperator!") renderMeth
