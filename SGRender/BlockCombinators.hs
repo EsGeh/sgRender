@@ -26,6 +26,7 @@ x = 0
 y = 1
 
 
+
 {-
 instance Show (DimRel t) where
 	show dimRel = map dimRel $ zip 
@@ -72,7 +73,7 @@ renderListVert divBlocks listRenderMeth = combine
 			0 -> sum $ listDimRel <*> [defOneDim]
 			1 -> case listDimRel of
 				[] -> 0
-				_ -> maximum $ listWidth $ dbgPrint listHeight
+				_ -> maximum $ listWidth $ listHeight
 					where
 						listHeight = divBlocks defOneDim $ listDimRel
 						listWidth listHeight = getZipList $ 
@@ -190,36 +191,6 @@ unintersperse list = case list of
 debug info x = trace (info ++ show x) x
 
 
-hori :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-hori = renderListHori divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
-horiWithSep :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-horiWithSep = renderListHoriWithSep (filledBlock "|") 1 divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
-
-vert :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-vert = renderListVert divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
-vertWithSep :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-vertWithSep = renderListVertWithSep (filledBlock "-") 1 divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
-
-test :: Show src => RenderMethod src (Block Char) (Size Int) (DimRel Int) -> src -> IO ()
-test renderMeth src = do
-	--putStrLn $ showDimRel ((srcInfo renderMeth) src)
-	putStrLn $ "x = [0..10] -> y:"
-	putStrLn $ show $ map ((srcInfo renderMeth) src) (zip (repeat x) [0..10])
-	putStrLn $ "y = [0..10] -> x:"
-	putStrLn $ show $ map ((srcInfo renderMeth) src) (zip (repeat y) [0..10])
-	putStrLn $ "renderF:"
-	putStrLn $ show $ (renderF renderMeth) (20,4) src
-
-showDimRel dimRel =
-	let
-		listX = [0..10]
-		listY = [0..10]
-	in
-		"x->y: " ++ (showList $ listTupel x $ listX)
-		where
-			listTupel indexDim list = list `zip` (map dimRel $ zip (repeat indexDim) list)
-			showList listTupel = foldl1 conc $ map (\(f, s) -> show f ++ "->" ++ show s) listTupel
-				where conc l r = l ++ ", " ++ r
 
 
 renderTable:: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)

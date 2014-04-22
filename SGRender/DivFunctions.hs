@@ -126,5 +126,6 @@ divBlocks :: DivBlocks Int -- DefOneDim Int -> [DimRel Int] -> [Int]
 divBlocks defOneDim listDimRel =
 	let
 		maxDistDivision = divToMaxDist defOneDim listDimRel
+		minDistDivision = divToMinDist defOneDim listDimRel
 	in
 		divDistEqual (snd defOneDim) $ maxDistDivision 

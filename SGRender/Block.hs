@@ -54,6 +54,7 @@ instance MultiMonoid (Block a) N2 where
 instance Show (Block Char) where
 	show block =  showMatrix (runBlock block)
 
+
 showMatrix matr = unlines $ [mGetRow iRow matr | iRow <- mGetAllIndexRow matr]
 
 horiBlockComb :: ReprComb (Block a)
@@ -104,8 +105,22 @@ renderToBlockParamsStd = RenderToBlockParams {
 -- | 0 for x-Axis, 1 for y-Axis, ...
 type IndexDim = Int
 type DefOneDim value = (IndexDim, value)
--- | given one side of a rectangle, return the other
+
+{- | given one side of a rectangle, return the other
+
+DimRel-Condition: x -> y -> x' -> y' => y == y'
+
+prop> prop_dimRel 
+
+-}
 type DimRel value = (IndexDim, value) -> value -- IndexDim -> value -> value
+
+dimRelCond dimRel indexDim value =
+	let
+		y = dimRel (indexDim, value)
+		y' = dimRel (indexDim, dimRel ((1-indexDim), y) )
+	in
+		y == y'
 
 {- |sizeFromDimRel :: (DimRel Int) -> (IndexDim, Int) -> Size Int
 
