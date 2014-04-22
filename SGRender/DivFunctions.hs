@@ -1,4 +1,10 @@
-module SGRender.DivFunctions where
+module SGRender.DivFunctions(
+	-- * divFunctions
+	DivBlocks, 
+	divBlocks,
+	-- * divDist Functions
+	divDistEqual, divDistCut
+) where
 
 import SGRender.Block
 
@@ -42,7 +48,6 @@ if an equal division is not possible:
 			result can have negative entries!
 		also:
 			the division is not always very fair!)
-		
 @
 
 example:

@@ -6,11 +6,6 @@ module SGRender.BlockCombinators(
 	renderToBlockFix,
 	renderListHoriFix, renderListVertFix,
 	renderListHoriFixWithSep,
-	-- * divFunctions
-	DivBlocks, 
-	divBlocks,
-	-- * divDist Functions
-	divDistEqual, divDistCut,
 	-- * ready to use renderMethods
 	renderTable,
 	renderTree,
