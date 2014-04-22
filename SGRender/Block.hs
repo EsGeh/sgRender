@@ -133,7 +133,10 @@ where
 		1. longString = showF src ++ cycle fillTile :: [char]
 		2. lines = chop longString into lines :: [[char]]
 		3. return a "Block" of lines
-	-- PRECOND: distance >= 1, OTHERWISE: RETURNS NONSENSE!
+--
+	-- PRECOND: distance >= 1
+	-- OTHERWISE:
+	-- 	return srcInfo src (indexDim,1)
 	srcInfo src (indexDim, distance) = (Pseudo-Code):
 		minimumArea = length $ showF src
 		minimumArea / distance
@@ -149,7 +152,11 @@ renderToBlock params = renderToBlock'
 	srcToDimRel		--infoFromSrc:: src -> (IndexDim, Int) -> Int
 	(fillTile params)	--fillTile
 	where
-		srcToDimRel src (indexDim,value) = ceiling $ fromIntegral (length $ (showF params) src) / fromIntegral value
+		srcToDimRel src (indexDim,value) =
+			if value <= 1 then
+				length $ (showF params) src
+			else
+				ceiling $ fromIntegral (length $ (showF params) src) / fromIntegral value
 
 
 filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $ repeat $
