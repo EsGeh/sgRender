@@ -124,6 +124,7 @@ This means:
 -}
 divBlocks :: DivBlocks Int -- DefOneDim Int -> [DimRel Int] -> [Int]
 divBlocks defOneDim listDimRel =
-	let maxDistDivision = divToMaxDist defOneDim listDimRel
+	let
+		maxDistDivision = divToMaxDist defOneDim listDimRel
 	in
 		divDistEqual (snd defOneDim) $ maxDistDivision 

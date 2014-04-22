@@ -72,13 +72,15 @@ renderListVert divBlocks listRenderMeth = combine
 			0 -> sum $ listDimRel <*> [defOneDim]
 			1 -> case listDimRel of
 				[] -> 0
-				_ -> maximum $ listWidth $ listHeight
+				_ -> maximum $ listWidth $ dbgPrint listHeight
 					where
 						listHeight = divBlocks defOneDim $ listDimRel
 						listWidth listHeight = getZipList $ 
 							ZipList listDimRel
 							<*>
 							ZipList (zip (repeat y) listHeight)
+
+dbgPrint val = trace (show val) val
 
 renderListHoriWithSep :: Show src => FillFunction (Size Int) (Block Char)  -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 renderListHoriWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\size src -> renderF renderInterspersed' size (interspersedSrc src)) (\src -> srcInfo renderInterspersed' (interspersedSrc src))
@@ -200,12 +202,24 @@ vertWithSep = renderListVertWithSep (filledBlock "-") 1 divBlocks (repeat $ rend
 
 test :: Show src => RenderMethod src (Block Char) (Size Int) (DimRel Int) -> src -> IO ()
 test renderMeth src = do
+	--putStrLn $ showDimRel ((srcInfo renderMeth) src)
 	putStrLn $ "x = [0..10] -> y:"
 	putStrLn $ show $ map ((srcInfo renderMeth) src) (zip (repeat x) [0..10])
 	putStrLn $ "y = [0..10] -> x:"
 	putStrLn $ show $ map ((srcInfo renderMeth) src) (zip (repeat y) [0..10])
 	putStrLn $ "renderF:"
-	putStrLn $ show $ (renderF renderMeth) (20,10) src
+	putStrLn $ show $ (renderF renderMeth) (20,4) src
+
+showDimRel dimRel =
+	let
+		listX = [0..10]
+		listY = [0..10]
+	in
+		"x->y: " ++ (showList $ listTupel x $ listX)
+		where
+			listTupel indexDim list = list `zip` (map dimRel $ zip (repeat indexDim) list)
+			showList listTupel = foldl1 conc $ map (\(f, s) -> show f ++ "->" ++ show s) listTupel
+				where conc l r = l ++ ", " ++ r
 
 
 renderTable:: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
@@ -256,7 +270,9 @@ renderSqueezed :: IndexDim -> RenderMethod src repr (Size Int) (DimRel Int) -> s
 renderSqueezed minDim renderMeth src = (renderF renderMeth) size src
 	where
 		size :: Size Int
-		size = sizeFromDimRel (srcInfo renderMeth src) (1-minDim, srcInfo renderMeth src (minDim,1))
+		size = squeezedSize minDim (srcInfo renderMeth src)
+
+squeezedSize indexDim dimRel = sizeFromDimRel dimRel (1-indexDim, dimRel (indexDim,1))
 
 --type IndexDim = Int
 
