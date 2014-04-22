@@ -37,6 +37,9 @@ testAll = do
 	putStrLn "test table:"
 	test (renderListVert divBlocks $ repeat hori) [[1,2,33],[4,5,6]]
 
+	putStrLn "test horiWithSep:"
+	test horiWithSep [1,2,33]
+
 test renderMeth src = do
 	let dimRel = (srcInfo renderMeth src)
 	tryRenderMeth renderMeth src

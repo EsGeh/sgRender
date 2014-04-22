@@ -26,12 +26,6 @@ x = 0
 y = 1
 
 
-
-{-
-instance Show (DimRel t) where
-	show dimRel = map dimRel $ zip 
--}
-
 renderListHori :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 renderListHori divBlocks listRenderMeth = combine
 	(mmappend dimX)			-- concRepr
@@ -81,19 +75,23 @@ renderListVert divBlocks listRenderMeth = combine
 							<*>
 							ZipList (zip (repeat y) listHeight)
 
-dbgPrint val = trace (show val) val
-
-renderListHoriWithSep :: Show src => FillFunction (Size Int) (Block Char)  -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-renderListHoriWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\size src -> renderF renderInterspersed' size (interspersedSrc src)) (\src -> srcInfo renderInterspersed' (interspersedSrc src))
+renderListHoriWithSep :: Show src => FillFunction (Size Int) (Block Char) -> Width -> DivBlocks Int 
+	-> [RenderMethod src (Block Char) (Size Int) (DimRel Int)]
+	-> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
+renderListHoriWithSep fillFSep sepWidth divBlocks listRenderMeth =
+	renderMeth
+		(\size src -> renderF renderInterspersed' size (interspersedSrc src))	-- renderF
+		(\src -> srcInfo renderInterspersed' (interspersedSrc src))		-- srcInfo
 	where
 		renderInterspersed' = renderListHori (divWithSep sepWidth divBlocks) $ renderInterspersed renderSep listRenderMeth
 			where
 				renderSep = renderToConstRepr fillFSep dimRelSep
 				dimRelSep src defOneDim = case fst defOneDim of
 					0 -> 0
-					1 -> case snd defOneDim of
+					1 -> sepWidth
+						{-case snd defOneDim of
 						0 -> 0
-						_ -> sepWidth
+						_ -> sepWidth-}
 		interspersedSrc listSrc = intersperse (Left ()) $ map Right listSrc
 renderListVertWithSep :: Show src => FillFunction (Size Int) (Block Char)  -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 renderListVertWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\size src -> renderF renderInterspersed' size (interspersedSrc src)) (\src -> srcInfo renderInterspersed' (interspersedSrc src))
@@ -106,7 +104,7 @@ renderListVertWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\
 						0 -> 0
 						_ -> sepWidth
 
-					1 -> 0
+					1 -> sepWidth 
 					{-
 					0 -> 0
 					1 -> case snd defOneDim of
