@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="26cm" height="14cm" viewBox="19 19 502 273" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <g>
+      <rect style="fill: #ffffff" x="20" y="20" width="500" height="270"/>
+      <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="20" y="20" width="500" height="270"/>
+    </g>
+    <g>
+      <g>
+        <rect style="fill: #ffffff" x="60" y="180" width="152" height="60"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x="60" y="180" width="152" height="60"/>
+      </g>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="117.293" y="233.283">
+        <tspan x="117.293" y="233.283">srcL</tspan>
+      </text>
+      <g>
+        <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="118" y1="228" x2="80" y2="209"/>
+        <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="90.1803,208.5 79,208.5 85.7082,217.444 "/>
+      </g>
+      <text font-size="4.51556" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="94" y="224">
+        <tspan x="94" y="224">srcInfo</tspan>
+      </text>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="86" y="206.4">
+        <tspan x="86" y="206.4">srcInfoL</tspan>
+      </text>
+      <g>
+        <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="126" y1="228" x2="164" y2="209"/>
+        <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="158.292,217.444 165,208.5 153.82,208.5 "/>
+      </g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="126" y1="208" x2="146" y2="218"/>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="126" y="206.4">
+        <tspan x="126" y="206.4">paramL</tspan>
+      </text>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="166" y="206.4">
+        <tspan x="166" y="206.4">reprL</tspan>
+      </text>
+      <text font-size="4.51556" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="142" y="224">
+        <tspan x="142" y="224">renderF</tspan>
+      </text>
+      <g>
+        <g>
+          <rect style="fill: #ffffff" x="60" y="180" width="148" height="16"/>
+          <rect style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x="60" y="180" width="148" height="16"/>
+        </g>
+        <text font-size="6.77323" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="64" y="192">
+          <tspan x="64" y="192">RenderMethod srcL reprL paramL srcInfoL</tspan>
+        </text>
+      </g>
+    </g>
+    <g>
+      <g>
+        <rect style="fill: #ffffff" x="240" y="180" width="152" height="60"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x="240" y="180" width="152" height="60"/>
+      </g>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="297.293" y="233.283">
+        <tspan x="297.293" y="233.283">srcR</tspan>
+      </text>
+      <g>
+        <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="298" y1="228" x2="260" y2="209"/>
+        <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="270.18,208.5 259,208.5 265.708,217.444 "/>
+      </g>
+      <text font-size="4.51556" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="274" y="224">
+        <tspan x="274" y="224">srcInfo</tspan>
+      </text>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="266" y="206.4">
+        <tspan x="266" y="206.4">srcInfoR</tspan>
+      </text>
+      <g>
+        <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="306" y1="228" x2="344" y2="209"/>
+        <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="338.292,217.444 345,208.5 333.82,208.5 "/>
+      </g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="306" y1="208" x2="326" y2="218"/>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="306" y="206.4">
+        <tspan x="306" y="206.4">paramR</tspan>
+      </text>
+      <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="346" y="206.4">
+        <tspan x="346" y="206.4">reprR</tspan>
+      </text>
+      <text font-size="4.51556" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="322" y="224">
+        <tspan x="322" y="224">renderF</tspan>
+      </text>
+      <g>
+        <g>
+          <rect style="fill: #ffffff" x="240" y="180" width="148" height="16"/>
+          <rect style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x="240" y="180" width="148" height="16"/>
+        </g>
+        <text font-size="6.77323" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="244" y="192">
+          <tspan x="244" y="192">RenderMethod srcR reprR paramR srcInfoR</tspan>
+        </text>
+      </g>
+    </g>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="190" y="280">
+      <tspan x="190" y="280">(srcL, srcR)</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="40" y="80">
+      <tspan x="40" y="80">srcInfo</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="220" y="80">
+      <tspan x="220" y="80">param</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="480" y="80">
+      <tspan x="480" y="80">repr</tspan>
+    </text>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 134.153,242.005 A 109.745,109.745 0 0 0 200,270"/>
+      <polygon style="fill: #000000" points="128.769,236.812 139.276,240.632 133.927,242.256 132.017,247.51 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="128.769,236.812 139.276,240.632 133.927,242.256 132.017,247.51 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 240,270 A 103.293,103.293 0 0 0 300.482,241.983"/>
+      <polygon style="fill: #000000" points="305.705,236.63 302.814,247.43 300.73,242.242 295.33,240.797 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="305.705,236.63 302.814,247.43 300.73,242.242 295.33,240.797 "/>
+    </g>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="420" y1="120" x2="476.279" y2="82.4807"/>
+      <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="472.592,90.9476 478.139,81.2403 467.045,82.6271 "/>
+    </g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="240" y1="80" x2="280" y2="100"/>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="100" y1="100" x2="64" y2="82"/>
+      <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="73.1803,81 62,81 68.7082,89.9443 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 280,100 A 39.2331,39.2331 0 0 0 259.706,131.538"/>
+      <polygon style="fill: #000000" points="259.841,138.893 253.469,129.707 258.774,131.47 263.367,128.284 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="259.841,138.893 253.469,129.707 258.774,131.47 263.367,128.284 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 155.332,112.889 A 45.853,45.853 0 0 0 100,100"/>
+      <polygon style="fill: #000000" points="159.476,119.012 150.371,112.524 155.959,112.388 159.203,107.835 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="159.476,119.012 150.371,112.524 155.959,112.388 159.203,107.835 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 270,200 A 17.5,17.5 0 0 0 283.28,174.308"/>
+      <polygon style="fill: #000000" points="280.807,170.774 287.213,172.763 284.054,173.889 283.06,177.093 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="280.807,170.774 287.213,172.763 284.054,173.889 283.06,177.093 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 90,200 A 17.5,17.5 0 0 0 103.28,174.308"/>
+      <polygon style="fill: #000000" points="100.807,170.774 107.213,172.763 104.054,173.889 103.06,177.093 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="100.807,170.774 107.213,172.763 104.054,173.889 103.06,177.093 "/>
+    </g>
+    <g>
+      <g>
+        <rect style="fill: #ffffff" x="20" y="20" width="320" height="30"/>
+        <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="20" y="20" width="320" height="30"/>
+      </g>
+      <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="30" y="40">
+        <tspan x="30" y="40">RenderMethod (srcL,srcR) repr param srcInfo</tspan>
+      </text>
+    </g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #ffa500" points="70,150 70,140 250,140 250,150 "/>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #ffa500" x1="160" y1="140" x2="160" y2="124.472"/>
+      <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #ffa500" points="165,132.236 160,122.236 155,132.236 "/>
+    </g>
+    <text font-size="9.03097" style="fill: #ffa500;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="100" y="138">
+      <tspan x="100" y="138">concSrcInfo</tspan>
+    </text>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 337.782 161.479 C 343.234,161.751 354.123,160.95 354.012,166.257 C 353.901,171.565 131.57,164.715 126.558,168.185 C 121.547,171.655 123.86,185.919 129.106,197.95"/>
+      <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="120.973,191.807 129.553,198.975 130.139,187.81 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 343.217 167.799 C 348.669,168.072 313.147,168.185 308.136,171.655 C 303.124,175.124 299.682,184.559 304.929,196.591"/>
+      <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="296.796,190.448 305.376,197.616 305.962,186.451 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 69.5807,155.593 A 84.8202,84.8202 0 0 0 80,200"/>
+      <polygon style="fill: #000000" points="69.8796,151.112 72.216,157.4 69.395,155.585 66.2509,156.754 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="69.8796,151.112 72.216,157.4 69.395,155.585 66.2509,156.754 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 249.581,155.593 A 84.8202,84.8202 0 0 0 260,200"/>
+      <polygon style="fill: #000000" points="249.88,151.112 252.216,157.4 249.395,155.585 246.251,156.754 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="249.88,151.112 252.216,157.4 249.395,155.585 246.251,156.754 "/>
+    </g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #ff0000" points="212,210 220,210 220,250 400,250 400,210 392,210 "/>
+    <g>
+      <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #ff0000" x1="400" y1="230" x2="425.528" y2="230"/>
+      <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #ff0000" points="417.764,235 427.764,230 417.764,225 "/>
+    </g>
+    <g>
+      <path style="fill: none; fill-opacity:0; stroke-width: 1; stroke-dasharray: 4; stroke: #000000" d="M 430,230 A 221.483,221.483 0 0 0 422.736,128.167"/>
+      <polygon style="fill: #000000" points="420.376,121.053 428.445,128.792 422.896,128.117 419.026,132.152 "/>
+      <polygon style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="420.376,121.053 428.445,128.792 422.896,128.117 419.026,132.152 "/>
+    </g>
+    <text font-size="9.03097" style="fill: #ff0000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="340" y="260">
+      <tspan x="340" y="260">concRepr</tspan>
+    </text>
+    <g>
+      <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #0000ff" points="100,170 100,162 280,162 280,172 "/>
+      <text font-size="9.03097" style="fill: #0000ff;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="130" y="160">
+        <tspan x="130" y="160">paramsFromSrcInfos</tspan>
+      </text>
+      <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #0000ff" x1="260" y1="142" x2="260" y2="162"/>
+      <g>
+        <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #0000ff" x1="280" y1="162" x2="335.528" y2="162"/>
+        <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #0000ff" points="327.764,167 337.764,162 327.764,157 "/>
+      </g>
+    </g>
+  </g>
+</svg>

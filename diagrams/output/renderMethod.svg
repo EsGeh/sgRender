@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="8cm" height="4cm" viewBox="9 -61 152 62" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <rect style="fill: #ffffff" x="10" y="-60" width="150" height="60"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x="10" y="-60" width="150" height="60"/>
+  </g>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="67.2929" y="-6.71741">
+    <tspan x="67.2929" y="-6.71741">src</tspan>
+  </text>
+  <g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="68" y1="-12" x2="30" y2="-31"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="40.1803,-31.5 29,-31.5 35.7082,-22.5557 "/>
+  </g>
+  <text font-size="4.51556" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="44" y="-16">
+    <tspan x="44" y="-16">srcInfo</tspan>
+  </text>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="36" y="-33.6">
+    <tspan x="36" y="-33.6">srcInfo</tspan>
+  </text>
+  <g>
+    <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="76" y1="-12" x2="114" y2="-31"/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" points="108.292,-22.5557 115,-31.5 103.82,-31.5 "/>
+  </g>
+  <line style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x1="76" y1="-32" x2="96" y2="-22"/>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="76" y="-33.6">
+    <tspan x="76" y="-33.6">param</tspan>
+  </text>
+  <text font-size="6.77333" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="116" y="-33.6">
+    <tspan x="116" y="-33.6">repr</tspan>
+  </text>
+  <text font-size="4.51556" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="92" y="-16">
+    <tspan x="92" y="-16">renderF</tspan>
+  </text>
+  <g>
+    <g>
+      <rect style="fill: #ffffff" x="10" y="-60" width="140" height="15.903"/>
+      <rect style="fill: none; fill-opacity:0; stroke-width: 1; stroke: #000000" x="10" y="-60" width="140" height="15.903"/>
+    </g>
+    <text font-size="6.77323" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="20" y="-50">
+      <tspan x="20" y="-50">RenderMethod src repr param srcInfo</tspan>
+    </text>
+  </g>
+</svg>

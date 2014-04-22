@@ -47,8 +47,13 @@ renderListHori divBlocks listRenderMeth = combine
 		calcInfo listDimRel defOneDim = case fst defOneDim of
 			0 -> case listDimRel of
 				[] -> 0
-				_ -> maximum $ getZipList $ 
-					ZipList listDimRel <*> ZipList (zip (repeat x) (divBlocks defOneDim $ listDimRel))
+				_ -> maximum $ listHeight $ listWidth
+					where
+						listWidth = (divBlocks defOneDim $ listDimRel)
+						listHeight listWidth = getZipList $ 
+							ZipList listDimRel
+							<*>
+							ZipList (zip (repeat x) listWidth)
 			1 -> sum $ listDimRel <*> [defOneDim]
 renderListVert :: Show src => DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 renderListVert divBlocks listRenderMeth = combine
@@ -62,14 +67,18 @@ renderListVert divBlocks listRenderMeth = combine
 		calcSize size listDimRel = zip
 			(repeat $ vecX size)
 			(divBlocks (y, vecY size) listDimRel)
+		-- calcInfo :: [DimRel Int] -> DimRel Int
 		calcInfo listDimRel defOneDim = case fst defOneDim of
 			0 -> sum $ listDimRel <*> [defOneDim]
 			1 -> case listDimRel of
 				[] -> 0
-				_ -> maximum $ getZipList $ 
-					ZipList listDimRel <*> ZipList (zip (repeat y) (divBlocks defOneDim $ listDimRel))
-				--maximum $ div defOneDim listDimRel
-				--height
+				_ -> maximum $ listWidth $ listHeight
+					where
+						listHeight = divBlocks defOneDim $ listDimRel
+						listWidth listHeight = getZipList $ 
+							ZipList listDimRel
+							<*>
+							ZipList (zip (repeat y) listHeight)
 
 renderListHoriWithSep :: Show src => FillFunction (Size Int) (Block Char)  -> Width -> DivBlocks Int -> [RenderMethod src (Block Char) (Size Int) (DimRel Int)] -> RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 renderListHoriWithSep fillFSep sepWidth divBlocks listRenderMeth = renderMeth (\size src -> renderF renderInterspersed' size (interspersedSrc src)) (\src -> srcInfo renderInterspersed' (interspersedSrc src))
