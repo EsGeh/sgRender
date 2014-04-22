@@ -24,12 +24,25 @@ prop_dimRelY dimRel value =
 	in
 		distX == distX'
 
+tableData = [[1,2,33],[4,5,6]]
+tableDimRel = (srcInfo renderTable [[1,2,33],[4,5,6]])
 test = do
-	--testVert
-	testVertAfterHori
+	let dimRelHori = (srcInfo hori [1,2,33])
+	putStrLn "test hori:"
+	putStrLn $ showDimRel dimRelHori
+	putStrLn "check prop_dimRelX:"
+	check $ prop_dimRelX dimRelHori
+	putStrLn "check prop_dimRelY:"
+	check $ prop_dimRelY dimRelHori
 
-testVert = check $ prop_dimRel (srcInfo vert [1,2,33])
-testVertAfterHori = check $ prop_dimRel (srcInfo (renderListVert divBlocks $ repeat hori) [[1,2,33],[4,5,6]])
+	let dimRelVert = (srcInfo vert [1,2,33])
+	putStrLn "test vert:"
+	putStrLn $ showDimRel dimRelVert
+	putStrLn "check prop_dimRelX:"
+	check $ prop_dimRelX dimRelVert
+	putStrLn "check prop_dimRelY:"
+	check $ prop_dimRelY dimRelVert
+	--testVertAfterHori
 
 check = quickCheckWith stdArgs{ maxSuccess = 1000 }
 
@@ -44,24 +57,35 @@ vert = renderListVert divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
 vertWithSep :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 vertWithSep = renderListVertWithSep (filledBlock "-") 1 divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
 
+{-
+renderTable:: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
+renderTable = renderListVert divBlocks $
+	repeat $ renderListVert divBlocks $
+		repeat $ renderToBlock renderToBlockParamsStd
+-}
+
 tryRenderMeth :: Show src => RenderMethod src (Block Char) (Size Int) (DimRel Int) -> src -> IO ()
 tryRenderMeth renderMeth src = do
-	--putStrLn $ showDimRel ((srcInfo renderMeth) src)
-	putStrLn $ "x = [0..10] -> y:"
+	{-putStrLn $ "x = [0..10] -> y:"
 	putStrLn $ show $ map ((srcInfo renderMeth) src) (zip (repeat x) [0..10])
 	putStrLn $ "y = [0..10] -> x:"
-	putStrLn $ show $ map ((srcInfo renderMeth) src) (zip (repeat y) [0..10])
-	putStrLn $ "renderF:"
+	putStrLn $ show $ map ((srcInfo renderMeth) src) (zip (repeat y) [0..10])-}
+	putStrLn "dimRel:"
+	putStrLn $ showDimRel (srcInfo renderMeth src)
+	putStrLn $ "render to (20,4):"
 	putStrLn $ show $ (renderF renderMeth) (20,4) src
 
+showDimRel :: DimRel Int -> String
 showDimRel dimRel =
 	let
-		listX = [0..10]
-		listY = [0..10]
+		listX = [0..9]
+		listY = [0..9]
 	in
-		"x->y: " ++ (showList $ listTupel x $ listX)
+		"x->y:\n" ++ show listX ++ "\n" ++ show (listTupel x listX)
+		++
+		"\ny->x:\n" ++ show listY ++ "\n" ++ show (listTupel y listY)
 		where
-			listTupel indexDim list = list `zip` (map dimRel $ zip (repeat indexDim) list)
+			listTupel indexDim list = (map dimRel $ zip (repeat indexDim) list)
 			showList listTupel = foldl1 conc $ map (\(f, s) -> show f ++ "->" ++ show s) listTupel
 				where conc l r = l ++ ", " ++ r
 
