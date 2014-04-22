@@ -26,22 +26,24 @@ prop_dimRelY dimRel value =
 
 tableData = [[1,2,33],[4,5,6]]
 tableDimRel = (srcInfo renderTable [[1,2,33],[4,5,6]])
-test = do
+testAll = do
 	let dimRelHori = (srcInfo hori [1,2,33])
 	putStrLn "test hori:"
-	putStrLn $ showDimRel dimRelHori
-	putStrLn "check prop_dimRelX:"
-	check $ prop_dimRelX dimRelHori
-	putStrLn "check prop_dimRelY:"
-	check $ prop_dimRelY dimRelHori
+	test hori [1,2,33]
 
-	let dimRelVert = (srcInfo vert [1,2,33])
 	putStrLn "test vert:"
-	putStrLn $ showDimRel dimRelVert
+	test vert [1,2,33]
+
+	putStrLn "test table:"
+	test (renderListVert divBlocks $ repeat hori) [[1,2,33],[4,5,6]]
+
+test renderMeth src = do
+	let dimRel = (srcInfo renderMeth src)
+	tryRenderMeth renderMeth src
 	putStrLn "check prop_dimRelX:"
-	check $ prop_dimRelX dimRelVert
+	check $ prop_dimRelX dimRel
 	putStrLn "check prop_dimRelY:"
-	check $ prop_dimRelY dimRelVert
+	check $ prop_dimRelY dimRel
 	--testVertAfterHori
 
 check = quickCheckWith stdArgs{ maxSuccess = 1000 }
