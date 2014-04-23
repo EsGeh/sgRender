@@ -1,5 +1,10 @@
+module SGRender.TestConditions(
+	prop_dimRelX, prop_dimRelY, prop_dimRel,
+	test,
+	tryRenderMeth,
+	showDimRel,
+) where
 
-import SGRender.BlockCombinators
 import SGRender.Render
 import SGRender.Block
 import SGRender.DivFunctions
@@ -24,21 +29,8 @@ prop_dimRelY dimRel value =
 	in
 		distX == distX'
 
-tableData = [[1,2,33],[4,5,6]]
-tableDimRel = (srcInfo renderTable [[1,2,33],[4,5,6]])
-testAll = do
-	let dimRelHori = (srcInfo hori [1,2,33])
-	putStrLn "test hori:"
-	test hori [1,2,33]
-
-	putStrLn "test vert:"
-	test vert [1,2,33]
-
-	putStrLn "test table:"
-	test (renderListVert divBlocks $ repeat hori) [[1,2,33],[4,5,6]]
-
-	putStrLn "test horiWithSep:"
-	test horiWithSep [1,2,33]
+--tableData = [[1,2,33],[4,5,6]]
+--tableDimRel = (srcInfo renderTable [[1,2,33],[4,5,6]])
 
 test renderMeth src = do
 	let dimRel = (srcInfo renderMeth src)
@@ -52,15 +44,6 @@ test renderMeth src = do
 check = quickCheckWith stdArgs{ maxSuccess = 1000 }
 
 
-hori :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-hori = renderListHori divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
-horiWithSep :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-horiWithSep = renderListHoriWithSep (filledBlock "|") 1 divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
-
-vert :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-vert = renderListVert divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
-vertWithSep :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
-vertWithSep = renderListVertWithSep (filledBlock "-") 1 divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
 
 {-
 renderTable:: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
