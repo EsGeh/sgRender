@@ -7,7 +7,7 @@ module SGRender.FixHeightCombinators(
 	renderTable,
 	renderTree,
 	-- * render with default size
-	renderSqueezed, renderMinSize,
+	renderMinSize,
 ) where
 
 
@@ -83,42 +83,6 @@ renderTree = renderMeth newRenderF newSrcInfo
 			(value src, children src)
 		newSrcInfo tree = (srcInfo renderHeadAndSubTrees) (value tree, children tree)
 
-{- |@
-renderSqueezed dim renderMeth src
-@
-
-tries to minimize the space needed in the dimension 'dim'
-
-note for developers (Pseudo-Code):
-
-@
-renderSqueezed x renderMethod = 
-	distY = (srcInfo renderMethod :: DimRel) (x,1)
-	distX = (srcInfo renderMethod :: DimRel) (y,distY)
-@
-
--- this means:
-
-for every
-
-@
-renderMethod :: 'RenderMethod' src (Block char) (DimRel Int) (Size Int)
-@
-
-the following must be true:
-
-@
-	(srcInfo renderMethod) (dim, ? <=1) == (srcInfo renderMethod) (dim, 1)
-@
-
--}
-renderSqueezed :: IndexDim -> RenderMethod src repr (Size Int) (DimRel Int) -> src -> repr
-renderSqueezed minDim renderMeth src = (renderF renderMeth) size src
-	where
-		size :: Size Int
-		size = squeezedSize minDim (srcInfo renderMeth src)
-
-squeezedSize indexDim dimRel = sizeFromDimRel dimRel (1-indexDim, dimRel (indexDim,1))
 
 --type IndexDim = Int
 

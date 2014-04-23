@@ -2,6 +2,8 @@ module SGRender.BlockCombinators(
 	-- * render combinators (combine a list of RenderMethods)
 	renderListHori,renderListVert,
 	renderListHoriWithSep, renderListVertWithSep,
+	-- * render with default size
+	renderSqueezed, 
 ) where
 
 import SGRender.Render
@@ -36,6 +38,20 @@ testAll = do
 	putStrLn "test vertWithSep:"
 	test vertWithSep [1,2,33]
 
+	putStrLn "test tableWithSep:"
+	test (renderListVertWithSep (filledBlock "-") 1 divBlocks $ repeat hori) [[1,2,33],[4,5,6]]
+
+renderTable :: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
+renderTable = (renderListHoriWithSep (filledBlock "|") 1 divBlocks $ repeat $ renderListVertWithSep (filledBlock "-") 1 divBlocks $ repeat $ renderToBlock renderToBlockParamsStd)
+
+
+{-
+renderTable :: Show src => RenderMethod [[src]] (Block Char) (Size Int) (DimRel Int)
+renderTable = (renderListVertWithSep (filledBlock "-") 1 divBlocks $ repeat $ renderListHoriWithSep (filledBlock "|") 1 divBlocks $ repeat $ renderToBlock renderToBlockParamsStd)
+-}
+
+
+--tableWithSep sepHori sepHoriWidth sepVert
 
 hori :: Show src => RenderMethod [src] (Block Char) (Size Int) (DimRel Int)
 hori = renderListHori divBlocks (repeat $ renderToBlock renderToBlockParamsStd)
@@ -164,3 +180,41 @@ renderEither renderLeft renderRight = renderMeth newRenderF newSrcInfo
 		newSrcInfo src = case src of
 			Left srcLeft -> srcInfo renderLeft srcLeft
 			Right srcRight -> srcInfo renderRight srcRight
+
+
+{- |@
+renderSqueezed dim renderMeth src
+@
+
+tries to minimize the space needed in the dimension 'dim'
+
+note for developers (Pseudo-Code):
+
+@
+renderSqueezed x renderMethod = 
+	distY = (srcInfo renderMethod :: DimRel) (x,1)
+	distX = (srcInfo renderMethod :: DimRel) (y,distY)
+@
+
+-- this means:
+
+for every
+
+@
+renderMethod :: 'RenderMethod' src (Block char) (DimRel Int) (Size Int)
+@
+
+the following must be true:
+
+@
+	(srcInfo renderMethod) (dim, ? <=1) == (srcInfo renderMethod) (dim, 1)
+@
+
+-}
+renderSqueezed :: IndexDim -> RenderMethod src repr (Size Int) (DimRel Int) -> src -> repr
+renderSqueezed minDim renderMeth src = (renderF renderMeth) size src
+	where
+		size :: Size Int
+		size = squeezedSize minDim (srcInfo renderMeth src)
+
+squeezedSize indexDim dimRel = sizeFromDimRel dimRel (1-indexDim, dimRel (indexDim,1))
