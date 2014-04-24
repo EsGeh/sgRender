@@ -14,9 +14,8 @@ f :: DivBlocks t
 f (indexDim, dist) [dimRel1, dimRel2, ...] =
 	[dist1, dist2, ...]
 	where
-		dist1, dist2, ... \"describe a division of 'dist'\", such that
-		sum [dist1, dist2, ...] = dist (DivBlocks-Condition)
-@
+		???
+@		
 -}
 type DivBlocks dist = DefOneDim dist -> [DimRel dist] -> [dist] 
 
@@ -109,16 +108,18 @@ maxDist indexDim dimRel = dimRel ((1-indexDim), 1)
 -- |calculates the minimum distance in the 'indexDim' direction
 minDist indexDim dimRel = dimRel (1-indexDim, maxDist (1-indexDim) dimRel)
 
-{-|example:
-
-@
-divBlocks (x,5) [dimRel1, dimRel2, ...] = divDistEqual 5 [dimRel1 (y,1), dimRel2 (y,1), ...]
-@
-
-This means:
-
-@
-	divBlocks (x, dist) [dimRel1, dimRel2, ...] =
+{-|@divBlocks :: DivBlocks Int -- DefOneDim Int -> [DimRel Int] -> [Int]
+divBlocks defOneDim listDimRel =
+	let
+		maxDistDivision = [distMax1, distMax2, ...] -- [\<\< dimRel1 \>\>, \<\<dimRel2\>\>, ...]
+		minDistDivision = [distMin1, distMin2, ...] -- [\>\> dimRel1 \<\<, \>\>dimRel2\<\<, ...]
+	in
+		if ( snd defOneDim >= sum maxDistDivision)
+		then divDistEqual (snd defOneDim) $ maxDistDivision 
+		else
+			if (snd defOneDim >= sum minDistDivision)
+			then divDistEqual (snd defOneDim) $ minDistDivision
+			else minDistDivision
 @
 
 -}
