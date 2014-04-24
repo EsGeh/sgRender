@@ -108,7 +108,7 @@ type DefOneDim value = (IndexDim, value)
 
 {- | given one side of a rectangle, return the other
 
-DimRel-Condition: x -> y -> x' -> y' => y == y'
+implicitly, a function using this type signature, should fulfill the DimRel-Condition:
 
 prop> prop_dimRel 
 
@@ -122,9 +122,7 @@ dimRelCond dimRel indexDim value =
 	in
 		y == y'
 
-{- |sizeFromDimRel :: (DimRel Int) -> (IndexDim, Int) -> Size Int
-
-given one side of a rectangle, and a 'DimRel' Int, the rectangle is defined
+{- |given one side of a rectangle, and a 'DimRel' Int, the rectangle is defined
 -}
 sizeFromDimRel :: DimRel val -> (DefOneDim val -> Size val)
 sizeFromDimRel dimRel defOneDim = let (x:y:_) = insertAt (fst defOneDim) (snd defOneDim) [dimRel defOneDim] in
@@ -155,6 +153,7 @@ where
 	srcInfo src (indexDim, distance) = (Pseudo-Code):
 		minimumArea = length $ showF src
 		minimumArea / distance
+	(DimRel-Condition: ok)
 @
 -}
 renderToBlock :: RenderToBlockParams src char -> RenderMethod
@@ -173,7 +172,8 @@ renderToBlock params = renderToBlock'
 			else
 				ceiling $ fromIntegral (length $ (showF params) src) / fromIntegral value
 
-
+{- |'filledBlock fillTile size' returns a 'Block' filled using fillTile
+-}
 filledBlock fillTile size = Block $ fromJust $ mFromListRow $ take (vecY size) $ repeat $
 	take (vecX size) $ cycle fillTile
 
